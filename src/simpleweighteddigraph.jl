@@ -58,7 +58,7 @@ SimpleWeightedDiGraph(::Type{T}) where T<:Integer = SimpleWeightedDiGraph{T, Flo
 SimpleWeightedDiGraph(::Type{T}, ::Type{U}) where {T <: Integer, U <: Real} = SimpleWeightedDiGraph{T, U}(zero(T))
 
 # DiGraph(AbstractGraph, ::Type{U})
-function SimpleWeightedDiGraph(g::LightGraphs.AbstractGraph{T}, ::Type{U}=Float64) where {U <: Real, T}
+function SimpleWeightedDiGraph(g::Graphs.AbstractGraph{T}, ::Type{U}=Float64) where {U <: Real, T}
     return SimpleWeightedDiGraph{T}(adjacency_matrix(g, U))
 end
 
@@ -67,7 +67,7 @@ end
 
 Construct a weighted digraph from other graph `g` with initial weight `x`.
 """
-function SimpleWeightedDiGraph(g::LightGraphs.AbstractGraph{T}, x::U) where {U <: Real, T}
+function SimpleWeightedDiGraph(g::Graphs.AbstractGraph{T}, x::U) where {U <: Real, T}
     m = adjacency_matrix(g, U)'
     return SimpleWeightedDiGraph{T, U}(x .* m, permute=false)
 end
@@ -78,7 +78,7 @@ function SimpleWeightedDiGraph(i::AbstractVector{T}, j::AbstractVector{T}, v::Ab
     SimpleWeightedDiGraph{T, U}(sparse(j, i, v, m, m, combine), permute=false)
 end
 
-LightGraphs.SimpleDiGraph(g::SimpleWeightedDiGraph) = SimpleDiGraph(g.weights')
+Graphs.SimpleDiGraph(g::SimpleWeightedDiGraph) = SimpleDiGraph(g.weights')
 
 edgetype(::SimpleWeightedDiGraph{T, U}) where T<:Integer where U<:Real = SimpleWeightedGraphEdge{T,U}
 
