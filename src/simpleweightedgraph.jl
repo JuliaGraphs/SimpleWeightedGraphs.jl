@@ -59,20 +59,20 @@ SimpleWeightedGraph(::Type{T}, ::Type{U}) where {T<:Integer, U<:Real} = SimpleWe
 
 # Graph(SimpleGraph)
 
-function SimpleWeightedGraph(g::LightGraphs.AbstractGraph{T}, ::Type{U}=Float64) where {T <: Integer, U <: Real}
-    adj_matrix = if LightGraphs.is_directed(g)
+function SimpleWeightedGraph(g::Graphs.AbstractGraph{T}, ::Type{U}=Float64) where {T <: Integer, U <: Real}
+    adj_matrix = if Graphs.is_directed(g)
         # TODO abstract function instead of SimpleGraph constructor
-        adjacency_matrix(LightGraphs.SimpleGraphs.SimpleGraph(g), U)
+        adjacency_matrix(Graphs.SimpleGraphs.SimpleGraph(g), U)
     else
         adjacency_matrix(g, U)
     end
     return SimpleWeightedGraph{T, U}(adj_matrix)
 end
 
-function SimpleWeightedGraph(g::LightGraphs.AbstractGraph{T}, x::U) where {T <: Integer, U <: Real}
-    adj_matrix = if LightGraphs.is_directed(g)
+function SimpleWeightedGraph(g::Graphs.AbstractGraph{T}, x::U) where {T <: Integer, U <: Real}
+    adj_matrix = if Graphs.is_directed(g)
         # TODO abstract function instead of SimpleGraph constructor
-        adjacency_matrix(LightGraphs.SimpleGraphs.SimpleGraph(g), U)
+        adjacency_matrix(Graphs.SimpleGraphs.SimpleGraph(g), U)
     else
         adjacency_matrix(g, U)
     end
@@ -80,10 +80,10 @@ function SimpleWeightedGraph(g::LightGraphs.AbstractGraph{T}, x::U) where {T <: 
 end
 
 # SimpleWeightedGraph{T, U}(SimpleGraph)
-function (::Type{SimpleWeightedGraph{T, U}})(g::LightGraphs.AbstractGraph)  where {T<:Integer, U <: Real}
-    adj_matrix = if LightGraphs.is_directed(g)
+function (::Type{SimpleWeightedGraph{T, U}})(g::Graphs.AbstractGraph)  where {T<:Integer, U <: Real}
+    adj_matrix = if Graphs.is_directed(g)
         # TODO abstract function instead of SimpleGraph constructor
-        adjacency_matrix(LightGraphs.SimpleGraphs.SimpleGraph{T}(g), U)
+        adjacency_matrix(Graphs.SimpleGraphs.SimpleGraph{T}(g), U)
     else
         adjacency_matrix(g, U)
     end
@@ -97,7 +97,7 @@ function SimpleWeightedGraph(i::AbstractVector{T}, j::AbstractVector{T}, v::Abst
     SimpleWeightedGraph{T, U}(s)
 end
 
-LightGraphs.SimpleGraph(g::SimpleWeightedGraph) = SimpleGraph(g.weights)
+Graphs.SimpleGraph(g::SimpleWeightedGraph) = SimpleGraph(g.weights)
 
 edgetype(::SimpleWeightedGraph{T, U}) where {T<:Integer, U<:Real} = SimpleWeightedGraphEdge{T,U}
 

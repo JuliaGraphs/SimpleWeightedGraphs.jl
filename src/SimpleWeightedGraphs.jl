@@ -1,6 +1,6 @@
 module SimpleWeightedGraphs
 
-using LightGraphs
+using Graphs
 using LinearAlgebra
 using Markdown
 using SparseArrays
@@ -8,7 +8,7 @@ using SparseArrays
 import Base:
     convert, eltype, show, ==, Pair, Tuple, copy, length, issubset, zero
 
-import LightGraphs:
+import Graphs:
     _NI, AbstractGraph, AbstractEdge, AbstractEdgeIter,
     src, dst, edgetype, nv, ne, vertices, edges, is_directed,
     add_vertex!, add_edge!, rem_vertex!, rem_edge!,

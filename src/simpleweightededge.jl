@@ -1,5 +1,5 @@
 import Base: Pair, Tuple, show, ==
-import LightGraphs: AbstractEdge, src, dst, reverse
+import Graphs: AbstractEdge, src, dst, reverse
 
 abstract type AbstractSimpleWeightedEdge{T} <: AbstractEdge{T} end
 

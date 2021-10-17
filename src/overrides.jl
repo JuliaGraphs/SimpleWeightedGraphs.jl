@@ -80,7 +80,7 @@ savegraph(fn::AbstractString, g::AbstractSimpleWeightedGraph, gname::AbstractStr
 savegraph(fn::AbstractString, d::Dict{T, U}; compress=true) where T <: AbstractString where U <: AbstractSimpleWeightedGraph =
     savegraph(fn, d, SWGFormat(), compress=compress)
 
-# It is possible that this is suboptimal, but it is the most trivial extension of the implementation used in LightGraphs
+# It is possible that this is suboptimal, but it is the most trivial extension of the implementation used in Graphs.jl
 function cartesian_product(g::G, h::G) where G <: AbstractSimpleWeightedGraph
     z = G(nv(g) * nv(h))
     id(i, j) = (i - 1) * nv(h) + j

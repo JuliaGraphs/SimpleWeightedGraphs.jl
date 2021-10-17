@@ -5,11 +5,11 @@
 
 **Project Status:** As of 8 October 2021 SimpleWeightedGraphs is no longer under active development. It will remain available on Github at [sbromberger/SimpleWeightedGraphs.jl](https://github.com/sbromberger/SimpleWeightedGraphs.jl). The JuliaGraphs organization will continue to maintain packages that use SimpleWeightedGraphs and transition development over the long term.
 
-Edge-Weighted Graphs for [LightGraphs.jl](https://github.com/JuliaGraphs/LightGraphs.jl).
+Edge-Weighted Graphs for [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl).
 
 Usage:
 ```julia
-using LightGraphs, SimpleWeightedGraphs
+using Graphs, SimpleWeightedGraphs
 
 g = SimpleWeightedGraph(3)  # or use `SimpleWeightedDiGraph` for directed graphs
 add_edge!(g, 1, 2, 0.5)
