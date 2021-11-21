@@ -18,7 +18,15 @@ mutable struct SimpleWeightedGraph{T<:Integer, U<:Real} <: AbstractSimpleWeighte
 
 end
 
-ne(g::SimpleWeightedGraph) = (nnz(g.weights) + count(diag(g.weights) .!= 0)) ÷ 2
+ne(g::SimpleWeightedGraph) = (nnz(g.weights) + nselfloop(g)) ÷ 2
+
+function nselfloop(g::SimpleWeightedGraph)
+    n = 0
+    for i in axes(g.weights, 1)
+        n += g.weights[i, i] != 0
+    end
+    return n
+end
 
 SimpleWeightedGraph{T}(adjmx::SparseMatrixCSC{U, T}) where {T <: Integer, U <: Real} =
     SimpleWeightedGraph{T, U}(adjmx)
