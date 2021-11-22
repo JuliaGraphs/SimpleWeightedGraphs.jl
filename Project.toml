@@ -1,6 +1,6 @@
 name = "SimpleWeightedGraphs"
 uuid = "47aef6b3-ad0c-573a-a1e2-d07658019622"
-version = "1.2.0"
+version = "1.2.1"
 
 [deps]
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
