@@ -20,6 +20,14 @@ end
 
 ne(g::SimpleWeightedGraph) = (nnz(g.weights) + nselfloop(g)) ÷ 2
 
+function has_edge(g::SimpleWeightedGraph, u::Integer, v::Integer)
+    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    _get_nz_index!(g.weights, v, u) != 0 # faster than Base.isstored
+end
+
+has_edge(g::SimpleWeightedGraph, e::AbstractEdge) =
+    has_edge(g, src(e), dst(e))
+
 function nselfloop(g::SimpleWeightedGraph)
     n = 0
     for i in axes(g.weights, 1)
@@ -111,6 +119,11 @@ edgetype(::SimpleWeightedGraph{T, U}) where {T<:Integer, U<:Real} = SimpleWeight
 
 edges(g::SimpleWeightedGraph) = (SimpleWeightedEdge(x[1], x[2], x[3]) for x in zip(findnz(triu(g.weights))...))
 weights(g::SimpleWeightedGraph) = g.weights
+
+function outneighbors(g::SimpleWeightedGraph, v::Integer)
+    mat = g.weights
+    return view(mat.rowval, mat.colptr[v]:mat.colptr[v+1]-1)
+end
 inneighbors(g::SimpleWeightedGraph, x...) = outneighbors(g, x...)
 
 # add_edge! will overwrite weights.
@@ -132,11 +145,41 @@ function add_edge!(g::SimpleWeightedGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
-function rem_edge!(g::AbstractSimpleWeightedGraph, e::SimpleWeightedGraphEdge)
-    has_edge(g, e) || return false
-    U = weighttype(g)
-    @inbounds g.weights[dst(e), src(e)] = zero(U)
-    @inbounds g.weights[src(e), dst(e)] = zero(U)
+rem_edge!(g::SimpleWeightedGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<:Real} =
+    rem_edge!(g, src(e), dst(e))
+
+function rem_edge!(g::SimpleWeightedGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
+    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    w = g.weights
+    indx = _get_nz_index!(w, u, v)
+    indx == 0 && return false
+    @view(w.colptr[v+one(v):end]) .-= T(1)
+    deleteat!(w.rowval, indx)
+    deleteat!(w.nzval, indx)
+    (u == v) && return true
+    indx = _get_nz_index!(w, v, u)
+    @view(w.colptr[u+one(u):end]) .-= T(1)
+    deleteat!(w.rowval, indx)
+    deleteat!(w.nzval, indx)
+    return true
+end
+
+@doc_str """
+    rem_vertex!(g::SimpleWeightedGraph, v)
+
+Remove the vertex `v` from graph `g`. Return false if removal fails
+(e.g., if vertex is not in the graph); true otherwise.
+
+### Implementation Notes
+This operation has to be performed carefully if one keeps external
+data structures indexed by edges or vertices in the graph, since
+internally the removal results in all vertices with indices greater than `v`
+being shifted down one.
+"""
+function rem_vertex!(g::SimpleWeightedGraph, v::Integer)
+    v in vertices(g) || return false
+    n = nv(g)
+    g.weights = g.weights[1:n .!= v, 1:n .!= v]
     return true
 end
 

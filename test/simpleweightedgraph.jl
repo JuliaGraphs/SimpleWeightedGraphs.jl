@@ -74,6 +74,7 @@ using SimpleWeightedGraphs
         @test @inferred(ne(g)) == 3
 
         @test @inferred(rem_edge!(gc, 1, 2)) && @inferred(!has_edge(gc, 1, 2))
+        @test @inferred(inneighbors(gc, 2)) == @inferred(outneighbors(gc, 2)) == @inferred(neighbors(gc,2)) == [3]
         ga = @inferred(copy(g))
         @test @inferred(rem_vertex!(ga, 2)) && ne(ga) == 1
         @test @inferred(!rem_vertex!(ga, 10))
@@ -142,6 +143,7 @@ using SimpleWeightedGraphs
 
         @test @inferred(!rem_edge!(gc, 2, 1))
         @test @inferred(rem_edge!(gc, 1, 2)) && @inferred(!has_edge(gc, 1, 2))
+        @test @inferred(outneighbors(gc, 1)) == @inferred(neighbors(gc, 1)) == Int[]
         ga = @inferred(copy(g))
         @test @inferred(rem_vertex!(ga, 2)) && ne(ga) == 1
         @test @inferred(!rem_vertex!(ga, 10))
@@ -263,7 +265,7 @@ using SimpleWeightedGraphs
             @test_throws BoundsError g[3, 4, Val{:weight}()]
             @test_throws MethodError g[1, 2, Val{:wight}()]
             add_edge!(g, 1, 2, 5.0)
-            
+
             @test g[1, 2, Val{:weight}()] ≈ 5
             if is_directed(G)
                 @test g[2, 1, Val{:weight}()] ≈ 0
@@ -292,7 +294,7 @@ using SimpleWeightedGraphs
         @test g1 == g2
         @test ne(g1) == 5 # 1-2 1-3 2-3 3-4 4-1
         @test g1[1, 3, Val{:weight}()] ≈ 2.5
-        
+
         g = SimpleWeightedGraph(cycle_graph(5))
         g2 = SimpleWeightedGraph(g)
         @test g[1, 3, Val{:weight}()] ≈ 0
@@ -317,7 +319,7 @@ using SimpleWeightedGraphs
         @test dg[2, 1, Val{:weight}()] ≈ 0
         add_edge!(dg, 2, 1, 0.6)
         g = SimpleWeightedGraph(dg)
-        @test g[1, 2, Val{:weight}()] ≈ 1.1        
+        @test g[1, 2, Val{:weight}()] ≈ 1.1
         @test g[1, 3, Val{:weight}()] ≈ 0
         @test g[2, 3, Val{:weight}()] ≈ 0.5
     end

@@ -40,6 +40,14 @@ SimpleWeightedDiGraph{T,U}(g::SimpleWeightedDiGraph) where {T <: Integer, U <: R
 
 ne(g::SimpleWeightedDiGraph) = nnz(g.weights)
 
+function has_edge(g::SimpleWeightedDiGraph, u::Integer, v::Integer)
+    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    _get_nz_index!(g.weights, v, u) != 0 # faster than Base.isstored
+end
+
+has_edge(g::SimpleWeightedDiGraph, e::AbstractEdge) =
+    has_edge(g, src(e), dst(e))
+
 function SimpleWeightedDiGraph{T,U}(n::Integer = 0) where {T<:Integer, U<:Real}
     weights = spzeros(U, T, T(n), T(n))
     return SimpleWeightedDiGraph{T, U}(weights)
@@ -85,6 +93,10 @@ edgetype(::SimpleWeightedDiGraph{T, U}) where T<:Integer where U<:Real = SimpleW
 edges(g::SimpleWeightedDiGraph) = (SimpleWeightedEdge(x[2], x[1], x[3]) for x in zip(findnz(g.weights)...))
 weights(g::SimpleWeightedDiGraph) = g.weights'
 
+function outneighbors(g::SimpleWeightedDiGraph, v::Integer)
+    mat = g.weights
+    return view(mat.rowval, mat.colptr[v]:mat.colptr[v+1]-1)
+end
 inneighbors(g::SimpleWeightedDiGraph, v::Integer) = g.weights[v,:].nzind
 
 # add_edge! will overwrite weights.
@@ -105,13 +117,39 @@ function add_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
-function rem_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
-    has_edge(g, e) || return false
-    U = weighttype(g)
-    @inbounds g.weights[dst(e), src(e)] = zero(U)
+rem_edge!(g::SimpleWeightedDiGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<:Real} =
+    rem_edge!(g, src(e), dst(e))
+
+function rem_edge!(g::SimpleWeightedDiGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
+    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    w = g.weights
+    indx = _get_nz_index!(w, v, u)
+    indx == 0 && return false
+    @view(w.colptr[u+one(u):end]) .-= T(1)
+    deleteat!(w.rowval, indx)
+    deleteat!(w.nzval, indx)
+
     return true
 end
 
+@doc_str """
+    rem_vertex!(g::SimpleWeightedDiGraph, v)
+
+Remove the vertex `v` from graph `g`. Return false if removal fails
+(e.g., if vertex is not in the graph); true otherwise.
+
+### Implementation Notes
+This operation has to be performed carefully if one keeps external
+data structures indexed by edges or vertices in the graph, since
+internally the removal results in all vertices with indices greater than `v`
+being shifted down one.
+"""
+function rem_vertex!(g::SimpleWeightedDiGraph, v::Integer)
+    v in vertices(g) || return false
+    n = nv(g)
+    g.weights = g.weights[1:n .!= v, 1:n .!= v]
+    return true
+end
 
 copy(g::SimpleWeightedDiGraph) =  SimpleWeightedDiGraph(copy(g.weights'))
 
