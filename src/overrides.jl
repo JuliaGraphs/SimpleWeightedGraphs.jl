@@ -24,7 +24,7 @@ function degree_matrix(g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g)
     else
         d = vec(sum(g.weights, dims=1))
     end
-    return SparseMatrixCSC(T.(diagm(0=>d)))
+    return spdiagm( 0 => T.(d) )
 end
 
 function adjacency_matrix(g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out)
