@@ -16,7 +16,8 @@ tests = [
     "simpleweightedgraph",
     "overrides",
     "persistence",
-    "connectivity"
+    "connectivity",
+    "a_star"
 ]
 
 @testset "SimpleWeightedGraphs" begin
