@@ -1,6 +1,6 @@
 # SimpleWeightedGraphs
 
-[![Build Status](https://travis-ci.org/JuliaGraphs/SimpleWeightedGraphs.jl.svg?branch=master)](https://travis-ci.org/JuliaGraphs/SimpleWeightedGraphs.jl)
+[![Build Status](https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![codecov.io](http://codecov.io/github/JuliaGraphs/SimpleWeightedGraphs.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaGraphs/SimpleWeightedGraphs.jl?branch=master)
 
 Edge-Weighted Graphs for [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl).
