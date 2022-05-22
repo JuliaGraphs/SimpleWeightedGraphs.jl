@@ -1,5 +1,5 @@
 import SimpleWeightedGraphs.SimpleWeightedEdge
-@testset "SimpleWeightedEdge" begin
+@testset verbose = true "SimpleWeightedEdge" begin
     e = SimpleWeightedEdge(1, 2, 0.5)
     e2 = SimpleWeightedEdge(1, 2)
     e3 = SimpleWeightedEdge(1, 2, 1)

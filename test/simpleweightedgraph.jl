@@ -1,6 +1,6 @@
 using SimpleWeightedGraphs
 
-@testset "SimpleWeightedGraphs" begin
+@testset verbose = true "SimpleWeightedGraphs" begin
     @info("Ignore warnings relating to adding and removing vertices and edges")
     adjmx1 = [0 1 0; 1 1 1; 0 1 0] # SimpleWeightedGraph
     adjmx2 = [0 1 0; 1 1 1; 1 1 0] # SimpleWeightedDiGraph
@@ -263,7 +263,7 @@ using SimpleWeightedGraphs
             @test_throws BoundsError g[3, 4, Val{:weight}()]
             @test_throws MethodError g[1, 2, Val{:wight}()]
             add_edge!(g, 1, 2, 5.0)
-            
+
             @test g[1, 2, Val{:weight}()] ≈ 5
             if is_directed(G)
                 @test g[2, 1, Val{:weight}()] ≈ 0
@@ -292,7 +292,7 @@ using SimpleWeightedGraphs
         @test g1 == g2
         @test ne(g1) == 5 # 1-2 1-3 2-3 3-4 4-1
         @test g1[1, 3, Val{:weight}()] ≈ 2.5
-        
+
         g = SimpleWeightedGraph(cycle_graph(5))
         g2 = SimpleWeightedGraph(g)
         @test g[1, 3, Val{:weight}()] ≈ 0
@@ -317,7 +317,7 @@ using SimpleWeightedGraphs
         @test dg[2, 1, Val{:weight}()] ≈ 0
         add_edge!(dg, 2, 1, 0.6)
         g = SimpleWeightedGraph(dg)
-        @test g[1, 2, Val{:weight}()] ≈ 1.1        
+        @test g[1, 2, Val{:weight}()] ≈ 1.1
         @test g[1, 3, Val{:weight}()] ≈ 0
         @test g[2, 3, Val{:weight}()] ≈ 0.5
     end
