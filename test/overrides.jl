@@ -1,4 +1,4 @@
-@testset "Overrides" begin
+@testset verbose = true "Overrides" begin
     g3 = SimpleWeightedGraph(path_graph(5))
     g3_d = [1. 0. 0. 0. 0.;
             0. 2. 0. 0. 0.;
