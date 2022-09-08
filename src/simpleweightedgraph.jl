@@ -145,10 +145,10 @@ end
 
 is_directed(::Type{<:SimpleWeightedGraph}) = false
 
-function Base.getindex(g::SimpleWeightedGraph{T, U}, e::AbstractEdge, ::Val{:weight}) where {T, U, S}
+function Base.getindex(g::SimpleWeightedGraph{T, U}, e::AbstractEdge, ::Val{:weight}) where {T, U}
     return g.weights[src(e), dst(e)]
 end
 
-function Base.getindex(g::SimpleWeightedGraph{T, U}, i::Integer, j::Integer, ::Val{:weight}) where {T, U, S}
+function Base.getindex(g::SimpleWeightedGraph{T, U}, i::Integer, j::Integer, ::Val{:weight}) where {T, U}
     return g.weights[i, j]
 end
