@@ -123,9 +123,10 @@ rem_edge!(g::SimpleWeightedDiGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<
 function rem_edge!(g::SimpleWeightedDiGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
     (u ∈ vertices(g) && v ∈ vertices(g)) || return false
     w = g.weights
-    indx = _get_nz_index!(w, v, u)
-    indx == 0 && return false
-    @view(w.colptr[(u+one(u)):end]) .-= T(1)
+    indx = _get_nz_index!(w, v, u) # get the index in nzval
+    indx == 0 && return false # the edge does not exist
+    @view(w.colptr[(u+one(u)):end]) .-= T(1) # there is one value less in column u
+    # we remove the stored value
     deleteat!(w.rowval, indx)
     deleteat!(w.nzval, indx)
 
