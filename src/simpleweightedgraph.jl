@@ -145,7 +145,7 @@ function add_edge!(g::SimpleWeightedGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
-rem_edge!(g::SimpleWeightedGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<:Real} =
+rem_edge!(g::SimpleWeightedGraph, e::AbstractEdge) =
     rem_edge!(g, src(e), dst(e))
 
 function rem_edge!(g::SimpleWeightedGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
@@ -190,10 +190,10 @@ end
 
 is_directed(::Type{<:SimpleWeightedGraph}) = false
 
-function Base.getindex(g::SimpleWeightedGraph{T, U}, e::AbstractEdge, ::Val{:weight}) where {T, U, S}
+function Base.getindex(g::SimpleWeightedGraph, e::AbstractEdge, ::Val{:weight})
     return g.weights[src(e), dst(e)]
 end
 
-function Base.getindex(g::SimpleWeightedGraph{T, U}, i::Integer, j::Integer, ::Val{:weight}) where {T, U, S}
+function Base.getindex(g::SimpleWeightedGraph, i::Integer, j::Integer, ::Val{:weight})
     return g.weights[i, j]
 end

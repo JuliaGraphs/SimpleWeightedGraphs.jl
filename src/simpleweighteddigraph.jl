@@ -81,7 +81,7 @@ function SimpleWeightedDiGraph(g::Graphs.AbstractGraph{T}, x::U) where {U <: Rea
 end
 
 # DiGraph(srcs, dsts, weights)
-function SimpleWeightedDiGraph(i::AbstractVector{T}, j::AbstractVector{T}, v::AbstractVector{U}; combine = +) where T<:Integer where U<:Real
+function SimpleWeightedDiGraph(i::AbstractVector{T}, j::AbstractVector{T}, v::AbstractVector{U}; combine = +) where {T<:Integer, U<:Real}
     m = max(maximum(j), maximum(i))
     SimpleWeightedDiGraph{T, U}(sparse(j, i, v, m, m, combine), permute=false)
 end
@@ -117,7 +117,7 @@ function add_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
-rem_edge!(g::SimpleWeightedDiGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<:Real} =
+rem_edge!(g::SimpleWeightedDiGraph, e::AbstractEdge) =
     rem_edge!(g, src(e), dst(e))
 
 function rem_edge!(g::SimpleWeightedDiGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
@@ -163,7 +163,7 @@ is_directed(::Type{<:SimpleWeightedDiGraph}) = true
 
 Equivalent to g[src(e), dst(e)].
 """
-function Base.getindex(g::SimpleWeightedDiGraph{T, U}, e::AbstractEdge, ::Val{:weight}) where {T, U, S}
+function Base.getindex(g::SimpleWeightedDiGraph, e::AbstractEdge, ::Val{:weight})
     return g.weights[dst(e), src(e)]
 end
 
@@ -172,6 +172,6 @@ end
 
 Return the weight of edge (i, j).
 """
-function Base.getindex(g::SimpleWeightedDiGraph{T, U}, i::Integer, j::Integer, ::Val{:weight}) where {T, U, S}
+function Base.getindex(g::SimpleWeightedDiGraph, i::Integer, j::Integer, ::Val{:weight})
     return g.weights[j, i]
 end
