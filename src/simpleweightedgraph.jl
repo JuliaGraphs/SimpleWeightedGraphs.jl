@@ -149,16 +149,16 @@ rem_edge!(g::SimpleWeightedGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<:R
     rem_edge!(g, src(e), dst(e))
 
 function rem_edge!(g::SimpleWeightedGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
-    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    (u ∈ vertices(g) && v ∈ vertices(g)) || return false
     w = g.weights
     indx = _get_nz_index!(w, u, v)
     indx == 0 && return false
-    @view(w.colptr[v+one(v):end]) .-= T(1)
+    @view(w.colptr[(v+one(v)):end]) .-= T(1)
     deleteat!(w.rowval, indx)
     deleteat!(w.nzval, indx)
     (u == v) && return true
     indx = _get_nz_index!(w, v, u)
-    @view(w.colptr[u+one(u):end]) .-= T(1)
+    @view(w.colptr[(u+one(u)):end]) .-= T(1)
     deleteat!(w.rowval, indx)
     deleteat!(w.nzval, indx)
     return true

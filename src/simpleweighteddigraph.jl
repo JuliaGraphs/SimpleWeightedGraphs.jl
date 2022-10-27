@@ -41,7 +41,7 @@ SimpleWeightedDiGraph{T,U}(g::SimpleWeightedDiGraph) where {T <: Integer, U <: R
 ne(g::SimpleWeightedDiGraph) = nnz(g.weights)
 
 function has_edge(g::SimpleWeightedDiGraph, u::Integer, v::Integer)
-    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    (u ∈ vertices(g) && v ∈ vertices(g)) || return false
     _get_nz_index!(g.weights, v, u) != 0 # faster than Base.isstored
 end
 
@@ -95,7 +95,7 @@ weights(g::SimpleWeightedDiGraph) = g.weights'
 
 function outneighbors(g::SimpleWeightedDiGraph, v::Integer)
     mat = g.weights
-    return view(mat.rowval, mat.colptr[v]:mat.colptr[v+1]-1)
+    return view(mat.rowval, mat.colptr[v]:(mat.colptr[v+1]-1))
 end
 inneighbors(g::SimpleWeightedDiGraph, v::Integer) = g.weights[v,:].nzind
 
@@ -121,11 +121,11 @@ rem_edge!(g::SimpleWeightedDiGraph{T, U}, e::AbstractEdge) where {T<:Integer, U<
     rem_edge!(g, src(e), dst(e))
 
 function rem_edge!(g::SimpleWeightedDiGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
-    u ∈ vertices(g) && v ∈ vertices(g) || return false
+    (u ∈ vertices(g) && v ∈ vertices(g)) || return false
     w = g.weights
     indx = _get_nz_index!(w, v, u)
     indx == 0 && return false
-    @view(w.colptr[u+one(u):end]) .-= T(1)
+    @view(w.colptr[(u+one(u)):end]) .-= T(1)
     deleteat!(w.rowval, indx)
     deleteat!(w.nzval, indx)
 
