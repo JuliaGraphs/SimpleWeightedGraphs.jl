@@ -16,10 +16,11 @@ tests = [
     "simpleweightedgraph",
     "overrides",
     "persistence",
-    "connectivity"
+    "connectivity",
+    "a_star"
 ]
 
-@testset "SimpleWeightedGraphs" begin
+@testset verbose = true "SimpleWeightedGraphs" begin
     for t in tests
         tp = joinpath(testdir, "$(t).jl")
         include(tp)

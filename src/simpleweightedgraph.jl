@@ -191,6 +191,7 @@ end
 
 is_directed(::Type{<:SimpleWeightedGraph}) = false
 
+
 function Base.getindex(g::SimpleWeightedGraph, e::AbstractEdge, ::Val{:weight})
     return g.weights[src(e), dst(e)]
 end

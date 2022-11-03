@@ -2,11 +2,11 @@ const graphs = [
 :bull,
 :chvatal,
 :house
-]                    
-@testset "Connectivity" begin
+]
+@testset verbose = true "Connectivity" begin
      for s in graphs
          gx = smallgraph(s)
- 
+
          for g in testgraphs(gx)
              a = adjacency_matrix(g)
              x = connected_components(g)

@@ -1,4 +1,4 @@
-@testset "Persistence" begin
+@testset verbose = true "Persistence" begin
 gpath = joinpath(testdir, "testdata")
 pdict = loadgraphs(joinpath(gpath, "swgs.jgz"), SWGFormat())
 p1 = pdict["g"]

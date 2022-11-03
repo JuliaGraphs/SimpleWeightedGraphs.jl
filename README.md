@@ -1,6 +1,6 @@
 # SimpleWeightedGraphs
 
-[![Build Status](https://travis-ci.org/JuliaGraphs/SimpleWeightedGraphs.jl.svg?branch=master)](https://travis-ci.org/JuliaGraphs/SimpleWeightedGraphs.jl)
+[![Build Status](https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![codecov.io](http://codecov.io/github/JuliaGraphs/SimpleWeightedGraphs.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaGraphs/SimpleWeightedGraphs.jl?branch=master)
 
 Edge-Weighted Graphs for [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl).
@@ -13,6 +13,9 @@ g = SimpleWeightedGraph(3)  # or use `SimpleWeightedDiGraph` for directed graphs
 add_edge!(g, 1, 2, 0.5)
 add_edge!(g, 2, 3, 0.8)
 add_edge!(g, 1, 3, 2.0)
+
+# get weight of edge from vertex 1 to vertex 2
+get_weight(g, 1, 2)
 
 # find the shortest path from vertex 1 to vertex 3 taking weights into account.
 enumerate_paths(dijkstra_shortest_paths(g, 1), 3)
