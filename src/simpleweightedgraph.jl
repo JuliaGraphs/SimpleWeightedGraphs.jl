@@ -181,7 +181,8 @@ being shifted down one.
 function rem_vertex!(g::SimpleWeightedGraph, v::Integer)
     v in vertices(g) || return false
     n = nv(g)
-    g.weights = g.weights[1:n .!= v, 1:n .!= v]
+    all_except_v = (1:n) .!= v
+    g.weights = g.weights[all_except_v, all_except_v]
     return true
 end
 
