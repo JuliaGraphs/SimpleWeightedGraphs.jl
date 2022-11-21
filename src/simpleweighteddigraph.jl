@@ -120,7 +120,7 @@ end
 rem_edge!(g::SimpleWeightedDiGraph, e::AbstractEdge) =
     rem_edge!(g, src(e), dst(e))
 
-function rem_edge!(g::SimpleWeightedDiGraph{T, U}, u::Integer, v::Integer) where {T<:Integer, U<:Real}
+function rem_edge!(g::SimpleWeightedDiGraph, u::Integer, v::Integer)
     (u ∈ vertices(g) && v ∈ vertices(g)) || return false
     w = g.weights
     indx = _get_nz_index!(w, v, u) # get the index in nzval
