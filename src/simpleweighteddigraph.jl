@@ -40,6 +40,14 @@ SimpleWeightedDiGraph{T,U}(g::SimpleWeightedDiGraph) where {T <: Integer, U <: R
 
 ne(g::SimpleWeightedDiGraph) = nnz(g.weights)
 
+function has_edge(g::SimpleWeightedDiGraph, u::Integer, v::Integer)
+    (u ∈ vertices(g) && v ∈ vertices(g)) || return false
+    _get_nz_index!(g.weights, v, u) != 0 # faster than Base.isstored
+end
+
+has_edge(g::SimpleWeightedDiGraph, e::AbstractEdge) =
+    has_edge(g, src(e), dst(e))
+
 function SimpleWeightedDiGraph{T,U}(n::Integer = 0) where {T<:Integer, U<:Real}
     weights = spzeros(U, T, T(n), T(n))
     return SimpleWeightedDiGraph{T, U}(weights)
@@ -73,7 +81,7 @@ function SimpleWeightedDiGraph(g::Graphs.AbstractGraph{T}, x::U) where {U <: Rea
 end
 
 # DiGraph(srcs, dsts, weights)
-function SimpleWeightedDiGraph(i::AbstractVector{T}, j::AbstractVector{T}, v::AbstractVector{U}; combine = +) where T<:Integer where U<:Real
+function SimpleWeightedDiGraph(i::AbstractVector{T}, j::AbstractVector{T}, v::AbstractVector{U}; combine = +) where {T<:Integer, U<:Real}
     m = max(maximum(j), maximum(i))
     SimpleWeightedDiGraph{T, U}(sparse(j, i, v, m, m, combine), permute=false)
 end
@@ -85,6 +93,10 @@ edgetype(::SimpleWeightedDiGraph{T, U}) where T<:Integer where U<:Real = SimpleW
 edges(g::SimpleWeightedDiGraph) = (SimpleWeightedEdge(x[2], x[1], x[3]) for x in zip(findnz(g.weights)...))
 weights(g::SimpleWeightedDiGraph) = g.weights'
 
+function outneighbors(g::SimpleWeightedDiGraph, v::Integer)
+    mat = g.weights
+    return view(mat.rowval, mat.colptr[v]:(mat.colptr[v+1]-1))
+end
 inneighbors(g::SimpleWeightedDiGraph, v::Integer) = g.weights[v,:].nzind
 
 # add_edge! will overwrite weights.
@@ -105,13 +117,41 @@ function add_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
-function rem_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
-    has_edge(g, e) || return false
-    U = weighttype(g)
-    @inbounds g.weights[dst(e), src(e)] = zero(U)
+rem_edge!(g::SimpleWeightedDiGraph, e::AbstractEdge) =
+    rem_edge!(g, src(e), dst(e))
+
+function rem_edge!(g::SimpleWeightedDiGraph{T}, u::Integer, v::Integer) where {T}
+    (u ∈ vertices(g) && v ∈ vertices(g)) || return false
+    w = g.weights
+    indx = _get_nz_index!(w, v, u) # get the index in nzval
+    indx == 0 && return false # the edge does not exist
+    @view(w.colptr[(u+one(u)):end]) .-= T(1) # there is one value less in column u
+    # we remove the stored value
+    deleteat!(w.rowval, indx)
+    deleteat!(w.nzval, indx)
+
     return true
 end
 
+@doc_str """
+    rem_vertex!(g::SimpleWeightedDiGraph, v)
+
+Remove the vertex `v` from graph `g`. Return false if removal fails
+(e.g., if vertex is not in the graph); true otherwise.
+
+### Implementation Notes
+This operation has to be performed carefully if one keeps external
+data structures indexed by edges or vertices in the graph, since
+internally the removal results in all vertices with indices greater than `v`
+being shifted down one.
+"""
+function rem_vertex!(g::SimpleWeightedDiGraph, v::Integer)
+    v in vertices(g) || return false
+    n = nv(g)
+    all_except_v = (1:n) .!= v
+    g.weights = g.weights[all_except_v, all_except_v]
+    return true
+end
 
 copy(g::SimpleWeightedDiGraph) =  SimpleWeightedDiGraph(copy(g.weights'))
 
@@ -124,7 +164,7 @@ is_directed(::Type{<:SimpleWeightedDiGraph}) = true
 
 Equivalent to g[src(e), dst(e)].
 """
-function Base.getindex(g::SimpleWeightedDiGraph{T, U}, e::AbstractEdge, ::Val{:weight}) where {T, U}
+function Base.getindex(g::SimpleWeightedDiGraph, e::AbstractEdge, ::Val{:weight})
     return g.weights[dst(e), src(e)]
 end
 
@@ -133,6 +173,6 @@ end
 
 Return the weight of edge (i, j).
 """
-function Base.getindex(g::SimpleWeightedDiGraph{T, U}, i::Integer, j::Integer, ::Val{:weight}) where {T, U}
+function Base.getindex(g::SimpleWeightedDiGraph, i::Integer, j::Integer, ::Val{:weight})
     return g.weights[j, i]
 end

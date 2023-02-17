@@ -59,13 +59,10 @@ convert(::Type{SparseMatrixCSC{T, U}}, g::AbstractSimpleWeightedGraph) where T<:
 
 ### INTERFACE
 
-nv(g::AbstractSimpleWeightedGraph{T, U}) where T where U = T(size(g.weights, 1))
+nv(g::AbstractSimpleWeightedGraph{T, U}) where T where U = T(size(weights(g), 1))
 vertices(g::AbstractSimpleWeightedGraph{T, U}) where T where U = one(T):nv(g)
 eltype(x::AbstractSimpleWeightedGraph{T, U}) where T where U = T
 weighttype(x::AbstractSimpleWeightedGraph{T, U}) where T where U = U
-
-has_edge(g::AbstractSimpleWeightedGraph{T, U}, e::AbstractSimpleWeightedEdge) where T where U =
-    g.weights[dst(e), src(e)] != zero(U)
 
 # handles single-argument edge constructors such as pairs and tuples
 has_edge(g::AbstractSimpleWeightedGraph{T, U}, x) where T where U = has_edge(g, edgetype(g)(x))
@@ -88,42 +85,14 @@ function rem_edge!(g::AbstractSimpleWeightedGraph{T, U}, u::Integer, v::Integer)
     rem_edge!(g, edgetype(g)(T(u), T(v), one(U)))
 end
 
-@doc_str """
-    rem_vertex!(g::AbstractSimpleWeightedGraph, v)
-
-Remove the vertex `v` from graph `g`. Return false if removal fails
-(e.g., if vertex is not in the graph); true otherwise.
-
-### Implementation Notes
-This operation has to be performed carefully if one keeps external
-data structures indexed by edges or vertices in the graph, since
-internally the removal results in all vertices with indices greater than `v`
-being shifted down one.
-"""
-function rem_vertex!(g::AbstractSimpleWeightedGraph, v::Integer)
-    v in vertices(g) || return false
-    n = nv(g)
-
-    newweights = g.weights[1:nv(g) .!= v, :]
-    newweights = newweights[:, 1:nv(g) .!= v]
-
-    g.weights = newweights
-    return true
-end
-
-function outneighbors(g::AbstractSimpleWeightedGraph, v::Integer)
-    mat = g.weights
-    return view(mat.rowval, mat.colptr[v]:mat.colptr[v+1]-1)
-end
-
-get_weight(g::AbstractSimpleWeightedGraph, u::Integer, v::Integer) = g.weights[v, u]
+get_weight(g::AbstractSimpleWeightedGraph, u::Integer, v::Integer) = weights(g)[v, u]
 
 zero(g::T) where T<:AbstractSimpleWeightedGraph = T()
 
 # TODO: manipulte SparseMatrixCSC directly
 add_vertex!(g::AbstractSimpleWeightedGraph) = add_vertices!(g, 1)
 
-copy(g::T) where T <: AbstractSimpleWeightedGraph =  T(copy(g.weights))
+copy(g::T) where T <: AbstractSimpleWeightedGraph =  T(copy(weights(g)))
 
 
 const SimpleWeightedGraphEdge = SimpleWeightedEdge
@@ -135,6 +104,21 @@ include("persistence.jl")
 
 const WGraph = SimpleWeightedGraph
 const WDiGraph = SimpleWeightedDiGraph
+
+
+# return the index in nzval of mat[i, j]
+# we assume bounds are already checked
+# see https://github.com/JuliaSparse/SparseArrays.jl/blob/fa547689947fadd6c2f3d09ddfcb5f26536f18c8/src/sparsematrix.jl#L2492 for implementation
+@inbounds function _get_nz_index!(mat::SparseMatrixCSC, i::Integer, j::Integer)
+    # r1 and r2 are start and end of the column
+    r1 = Int(mat.colptr[j])
+    r2 = Int(mat.colptr[j+1]-1)
+    (r1 > r2) && return 0 # column is empty so we have a non structural zero
+    # search if i correspond to a stored value
+    indx = searchsortedfirst(mat.rowval, i, r1, r2, Base.Forward)
+    ((indx > r2) || (mat.rowval[indx] != i)) && return 0
+    return indx
+end
 
 SimpleWeightedDiGraph(g::SimpleWeightedGraph) = SimpleWeightedDiGraph(copy(g.weights))
 function SimpleWeightedDiGraph{T, U}(g::SimpleWeightedGraph) where {T<:Integer, U<:Real}
