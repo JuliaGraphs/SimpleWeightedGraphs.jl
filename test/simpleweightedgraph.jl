@@ -103,6 +103,9 @@ using SimpleWeightedGraphs
         @test @inferred(copy(g)) == g
         @test @inferred(!is_directed(g))
 
+        # test that edgetype(g) is a valid constructor when called with just the source and destination vertex
+        @test edgetype(g)(1,2) == SimpleWeightedGraphEdge{T, U}(1,2,1.0)
+
         e = first(edges(g))
         @test @inferred(has_edge(g, e))
     end
@@ -171,6 +174,9 @@ using SimpleWeightedGraphs
         @test @inferred(edgetype(g)) == SimpleWeightedDiGraphEdge{T, U}
         @test @inferred(copy(g)) == g
         @test @inferred(is_directed(g))
+
+        # test that edgetype(g) is a valid constructor when called with just the source and destination vertex
+        @test edgetype(g)(1,2) == SimpleWeightedDiGraphEdge{T, U}(1,2,1.0)
 
         e = first(@inferred(edges(g)))
         @test @inferred(has_edge(g, e))
