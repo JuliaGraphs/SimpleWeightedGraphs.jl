@@ -1,21 +1,25 @@
-# The format of simpleweightedgraph files is as follows: for each graph,
-# a one line header: "LightGraphs.SimpleWeightedGraph", <num_vertices>, <num_edges>, {"d" | "u"}, <name>[, <ver>, <vdatatype>, <wdatatype>, <graphcode>]
-#   - "LightGraphs.SimpleWeightedGraph" is a fixed string
-#   - num_vertices is an integer
-#   - num_edges is an integer
-#   - "d" for directed graph, "u" for undirected. Note that this
-#       option does not perform any additional edge construction; it's
-#       merely used to return the correct type of graph.
-#   - name is a string
-#   - ver is an int
-#   - vdatatype is a string ("UInt8", etc.)
-#   - wdatatype is a string describing the data type of the weights
-#   - graphcode is a string.
-# header followed by a list of (comma-delimited) edges - src,dst,weight
-# Multiple graphs may be present in one file.
+const FIXEDSTR = "LightGraphs.SimpleWeightedGraph"  # TODO: rename it
 
-const FIXEDSTR = "LightGraphs.SimpleWeightedGraph"
+"""
+    SWGFormat
 
+The storage format of SimpleWeightedGraph files. For each graph, the file contains
+    1. A one line header: "LightGraphs.SimpleWeightedGraph", <num_vertices>, <num_edges>, {"d" | "u"}, <name>[, <ver>, <vdatatype>, <wdatatype>, <graphcode>]
+        - "LightGraphs.SimpleWeightedGraph" is a fixed string
+        - num_vertices is an integer
+        - num_edges is an integer
+        - "d" for directed graph, "u" for undirected. Note that this
+            option does not perform any additional edge construction; it's
+            merely used to return the correct type of graph.
+        - name is a string
+        - ver is an int
+        - vdatatype is a string ("UInt8", etc.)
+        - wdatatype is a string describing the data type of the weights
+        - graphcode is a string.
+    2. Followed by a list of (comma-delimited) edges - src,dst,weight
+
+Multiple graphs may be present in one file.
+"""
 struct SWGFormat <: AbstractGraphFormat end
 
 struct SWGHeader
@@ -28,20 +32,23 @@ struct SWGHeader
     wdtype::DataType    # weight data type
     code::String
 end
-function show(io::IO, h::SWGHeader)
+function Base.show(io::IO, h::SWGHeader)
     isdir = h.is_directed ? "d" : "u"
-    print(io, "$FIXEDSTR,$(h.nv),$(h.ne),$isdir,$(h.name),$(h.ver),$(h.vdtype),$(h.wdtype),$(h.code)")
+    return print(
+        io,
+        "$FIXEDSTR,$(h.nv),$(h.ne),$isdir,$(h.name),$(h.ver),$(h.vdtype),$(h.wdtype),$(h.code)",
+    )
 end
 
 function _swg_read_one_graph(f::IO, header::SWGHeader)
     T = header.vdtype
     U = header.wdtype
     if header.is_directed
-        g = SimpleWeightedDiGraph{T, U}(header.nv)
+        g = SimpleWeightedDiGraph{T,U}(header.nv)
     else
-        g = SimpleWeightedGraph{T, U}(header.nv)
+        g = SimpleWeightedGraph{T,U}(header.nv)
     end
-    for i = 1:header.ne
+    for i in 1:(header.ne)
         line = chomp(readline(f))
         if length(line) > 0
             src_s, dst_s, weight_s = split(line, r"\s*,\s*")
@@ -62,7 +69,9 @@ end
 
 function _parse_header(s::AbstractString)
     addl_info = false
-    fixedstr, nvstr, nestr, dirundir, graphname, _ver, _vdtype, _wdtype, graphcode  = split(s, r"s*,s*", limit=9)
+    fixedstr, nvstr, nestr, dirundir, graphname, _ver, _vdtype, _wdtype, graphcode = split(
+        s, r"s*,s*"; limit=9
+    )
     fixedstr != FIXEDSTR && error("Error parsing header.")
 
     n_v = parse(Int, nvstr)
@@ -106,7 +115,7 @@ function loadswg(io::IO, gname::String)
             _swg_skip_one_graph(io, header.ne)
         end
     end
-    error("Graph $gname not found")
+    return error("Graph $gname not found")
 end
 
 """
@@ -116,7 +125,16 @@ Write a graph `g` with name `gname` in a proprietary format
 to the IO stream designated by `io`. Return 1 (number of graphs written).
 """
 function saveswg(io::IO, g::AbstractGraph, gname::String)
-    header = SWGHeader(nv(g), ne(g), is_directed(g), gname, 1, eltype(g), weighttype(g), "simpleweightedgraph")
+    header = SWGHeader(
+        nv(g),
+        ne(g),
+        is_directed(g),
+        gname,
+        1,
+        eltype(g),
+        weighttype(g),
+        "simpleweightedgraph",
+    )
     # write header line
     line = string(header)
     write(io, "$line\n")
@@ -141,9 +159,27 @@ function saveswg_mult(io::IO, graphs::Dict)
     return ng
 end
 
+Graphs.loadgraph(io::IO, gname::String, ::SWGFormat) = loadswg(io, gname)
+Graphs.loadgraphs(io::IO, ::SWGFormat) = loadswg_mult(io)
 
-loadgraph(io::IO, gname::String, ::SWGFormat) = loadswg(io, gname)
-loadgraphs(io::IO, ::SWGFormat) = loadswg_mult(io)
-savegraph(io::IO, g::AbstractGraph, gname::String, ::SWGFormat) = saveswg(io, g, gname)
-savegraph(io::IO, g::AbstractGraph, ::SWGFormat) = saveswg(io, g, "graph")
-savegraph(io::IO, d::Dict, ::SWGFormat) = saveswg_mult(io, d)
+function Graphs.savegraph(io::IO, g::AbstractGraph, gname::String, ::SWGFormat)
+    return saveswg(io, g, gname)
+end
+
+Graphs.savegraph(io::IO, g::AbstractGraph, ::SWGFormat) = saveswg(io, g, "graph")
+Graphs.savegraph(io::IO, d::Dict, ::SWGFormat) = saveswg_mult(io, d)
+
+function Graphs.savegraph(
+    fn::AbstractString,
+    g::AbstractSimpleWeightedGraph,
+    gname::AbstractString="graph";
+    compress=true,
+)
+    return savegraph(fn, g, gname, SWGFormat(); compress=compress)
+end
+
+function Graphs.savegraph(
+    fn::AbstractString, d::Dict{T,U}; compress=true
+) where {T<:AbstractString,U<:AbstractSimpleWeightedGraph}
+    return savegraph(fn, d, SWGFormat(); compress=compress)
+end
