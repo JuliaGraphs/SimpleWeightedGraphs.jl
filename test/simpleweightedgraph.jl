@@ -1,4 +1,5 @@
 using SimpleWeightedGraphs
+using SparseArrays
 
 @testset verbose = true "SimpleWeightedGraphs" begin
     @info("Ignore warnings relating to adding and removing vertices and edges")
@@ -328,5 +329,19 @@ using SimpleWeightedGraphs
         @test g[1, 2, Val{:weight}()] ≈ 1.1
         @test g[1, 3, Val{:weight}()] ≈ 0
         @test g[2, 3, Val{:weight}()] ≈ 0.5
+    end
+
+    # this testset was implemented for https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/issues/32
+    @testset "induced_subgraph should preserve weights for edge lists" begin
+        g = SimpleWeightedGraph([0 2; 2 0])
+        graphWeights = weights(g)
+        expectedGraphWeights = sparse([0 2; 2 0])
+        @test graphWeights == expectedGraphWeights
+        # vertex induced subgraph
+        vertexInducedSubgraphWeights = weights(first(induced_subgraph(g, [1, 2])))
+        @test vertexInducedSubgraphWeights == expectedGraphWeights
+        # edge induced subgraph
+        edgeInducedSubgraphWeights = weights(first(induced_subgraph(g, [Edge(1, 2)])))
+        @test edgeInducedSubgraphWeights == expectedGraphWeights
     end
 end
