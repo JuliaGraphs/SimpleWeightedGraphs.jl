@@ -1,15 +1,8 @@
-##### OVERRIDES FOR EFFICIENCY / CORRECTNESS
+"""
+    degree_matrix(g, T; dir)
 
-function Graphs.add_vertices!(g::AbstractSimpleWeightedGraph, n::Integer)
-    T = eltype(g)
-    U = weighttype(g)
-    (nv(g) + one(T) <= nv(g)) && return false       # test for overflow
-    emptycols = spzeros(U, nv(g) + n, n)
-    g.weights = hcat(g.weights, emptycols[1:nv(g), :])
-    g.weights = vcat(g.weights, emptycols')
-    return true
-end
-
+Construct the weighted diagonal degree matrix, filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]`.
+"""
 function degree_matrix(
     g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
 )
@@ -29,6 +22,11 @@ function degree_matrix(
     return spdiagm(0 => T.(d))
 end
 
+"""
+    Graphs.adjacency_matrix(g, T; dir)
+
+Construct the weighted adjacency matrix, filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]`.
+"""
 function Graphs.adjacency_matrix(
     g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
 )
@@ -39,12 +37,22 @@ function Graphs.adjacency_matrix(
     end
 end
 
+"""
+    Graphs.laplacian_matrix(g, T; dir)
+
+Subtract the adjacency matrix to the degree matrix, both filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]`.
+"""
 function Graphs.laplacian_matrix(
     g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
 )
     return degree_matrix(g, T; dir=dir) - adjacency_matrix(g, T; dir=dir)
 end
 
+"""
+    Graphs.pagerank(g, α=0.85, n=100, ϵ=1.0e-6)
+
+Apply the page rank algorithm on a weighted graph.
+"""
 function Graphs.pagerank(g::SimpleWeightedDiGraph, α=0.85, n::Integer=100, ϵ=1.0e-6)
     A = weights(g)
     S = vec(sum(A; dims=1))
@@ -80,7 +88,14 @@ function Graphs.pagerank(g::SimpleWeightedDiGraph, α=0.85, n::Integer=100, ϵ=1
     return error("Pagerank did not converge after $n iterations.")
 end
 
-# It is possible that this is suboptimal, but it is the most trivial extension of the implementation used in Graphs.jl
+"""
+Graphs.cartesian_product(g, h)
+
+Compute the weighted cartesian product of two weighted graphs.
+
+!!! warning "Warning"
+    It is possible that this is suboptimal, but it is the most trivial extension of the implementation used in Graphs.jl.
+"""
 function Graphs.cartesian_product(g::G, h::G) where {G<:AbstractSimpleWeightedGraph}
     z = G(nv(g) * nv(h))
     id(i, j) = (i - 1) * nv(h) + j
@@ -127,7 +142,12 @@ function _cc(g::SimpleWeightedGraph{T,U}) where {T} where {U}
     return marks, comp
 end
 
-function Graphs.connected_components(g::SimpleWeightedGraph{T,U}) where {T} where {U}
+"""
+    Graphs.connected_components(g)
+
+Compute the connected components of a weighted graph. Note that an edge with weight `0` will still be counted as an edge if it exists in the sparse weights matrix.
+"""
+function Graphs.connected_components(g::SimpleWeightedGraph{T,U}) where {T,U}
     marks, num_cc = _cc(g)
     cc = [Vector{T}() for i in 1:num_cc]
     for (i, v) in enumerate(marks)
@@ -136,9 +156,16 @@ function Graphs.connected_components(g::SimpleWeightedGraph{T,U}) where {T} wher
     return cc
 end
 
+"""
+    Graphs.induced_subgraph(g, vlist)
+
+Compute the weighted subgraph induced by a list of vertices.
+
+Return a tuple containing the new graph and the list of vertices.
+"""
 function Graphs.induced_subgraph(
     g::T, vlist::AbstractVector{U}
-) where {T<:AbstractSimpleWeightedGraph} where {U<:Integer}
+) where {T<:AbstractSimpleWeightedGraph,U<:Integer}
     E = eltype(g)
     allunique(vlist) || throw(ArgumentError("Vertices in subgraph list must be unique"))
     new_weights = g.weights[E.(vlist), E.(vlist)]

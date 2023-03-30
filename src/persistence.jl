@@ -3,22 +3,36 @@ const FIXEDSTR = "LightGraphs.SimpleWeightedGraph"  # TODO: rename it
 """
     SWGFormat
 
-The storage format of SimpleWeightedGraph files. For each graph, the file contains
-    1. A one line header: "LightGraphs.SimpleWeightedGraph", <num_vertices>, <num_edges>, {"d" | "u"}, <name>[, <ver>, <vdatatype>, <wdatatype>, <graphcode>]
-        - "LightGraphs.SimpleWeightedGraph" is a fixed string
-        - num_vertices is an integer
-        - num_edges is an integer
-        - "d" for directed graph, "u" for undirected. Note that this
-            option does not perform any additional edge construction; it's
-            merely used to return the correct type of graph.
-        - name is a string
-        - ver is an int
-        - vdatatype is a string ("UInt8", etc.)
-        - wdatatype is a string describing the data type of the weights
-        - graphcode is a string.
-    2. Followed by a list of (comma-delimited) edges - src,dst,weight
-
+The storage format of SimpleWeightedGraph files.
 Multiple graphs may be present in one file.
+
+For each graph, the file contains a one line header:
+
+```
+"LightGraphs.SimpleWeightedGraph", <num_vertices>, <num_edges>, {"d" | "u"}, <name>[, <ver>, <vdatatype>, <wdatatype>, <graphcode>]
+```
+
+- `"LightGraphs.SimpleWeightedGraph"` is a fixed string
+- `<num_vertices>` is an integer
+- `<num_edges>` is an integer
+- `"d"` for directed graph, `"u"` for undirected (note that this
+    option does not perform any additional edge construction, it's
+    merely used to return the correct type of graph)
+- `<name>` is a string
+- `<ver>` is an int
+- `<vdatatype>` is a string ("UInt8", etc.)
+- `<wdatatype>` is a string describing the data type of the weights
+- `<graphcode>` is a string.
+
+The header is followed by a list of (comma-delimited) edges, each on a separate line:
+
+```
+<src>,<dst>,<weight>
+```
+
+- `<src>` is an int giving the source of the edge
+- `<dst>` is an int giving the destination of the edge
+- `<weight>` is a real giving the weight of the edge
 """
 struct SWGFormat <: AbstractGraphFormat end
 
@@ -32,6 +46,7 @@ struct SWGHeader
     wdtype::DataType    # weight data type
     code::String
 end
+
 function Base.show(io::IO, h::SWGHeader)
     isdir = h.is_directed ? "d" : "u"
     return print(
@@ -89,7 +104,7 @@ end
 """
     loadswg_mult(io)
 
-Return a dictionary of (name=>graph) loaded from IO stream `io`.
+Return a dictionary of `name => graph` pairs loaded from the IO stream `io` using `SWGFormat`.
 """
 function loadswg_mult(io::IO)
     graphs = Dict{String,AbstractGraph}()
@@ -104,6 +119,11 @@ function loadswg_mult(io::IO)
     return graphs
 end
 
+"""
+    loadswg(io, gname)
+
+Return a single graph with name `gname` loaded from the IO stream `io` using `SWGFormat`.
+"""
 function loadswg(io::IO, gname::String)
     while !eof(io)
         line = strip(chomp(readline(io)))
@@ -121,8 +141,7 @@ end
 """
     saveswg(io, g, gname)
 
-Write a graph `g` with name `gname` in a proprietary format
-to the IO stream designated by `io`. Return 1 (number of graphs written).
+Write a graph `g` with name `gname` to the IO stream `io` using `SWGFormat`, and return 1 (number of graphs written).
 """
 function saveswg(io::IO, g::AbstractGraph, gname::String)
     header = SWGHeader(
@@ -146,29 +165,67 @@ function saveswg(io::IO, g::AbstractGraph, gname::String)
 end
 
 """
-    saveswg_mult(io, graphs)
+    saveswg_mult(io, d)
 
-Write a dictionary of (name=>graph) to an IO stream `io`,
-with default `GZip` compression. Return number of graphs written.
+Write a dictionary `d` of `name => graph` pairs to the IO stream `io` using `SWGFormat`, and return the number of graphs written.
 """
-function saveswg_mult(io::IO, graphs::Dict)
+function saveswg_mult(io::IO, d::Dict)
     ng = 0
-    for (gname, g) in graphs
+    for (gname, g) in d
         ng += saveswg(io, g, gname)
     end
     return ng
 end
 
+## Graphs functions with IO
+
+"""
+    Graphs.loadgraph(io, gname, SWGFormat())
+
+Return a single graph with name `gname` loaded from the IO stream `io` using `SWGFormat`.
+"""
 Graphs.loadgraph(io::IO, gname::String, ::SWGFormat) = loadswg(io, gname)
+
+"""
+    Graphs.loadgraphs(io, SWGFormat())
+
+Return a dictionary of `name => graph` pairs loaded from the IO stream `io` using `SWGFormat`.
+"""
 Graphs.loadgraphs(io::IO, ::SWGFormat) = loadswg_mult(io)
 
+"""
+    Graphs.savegraph(io, g, gname, SWGFormat())
+
+Write a graph `g` with name `gname` to the IO stream `io` using `SWGFormat`, and return 1 (number of graphs written).
+"""
 function Graphs.savegraph(io::IO, g::AbstractGraph, gname::String, ::SWGFormat)
     return saveswg(io, g, gname)
 end
 
+"""
+    Graphs.savegraph(io, g, SWGFormat())
+
+Write a graph `g` with default name `"graph"` to the IO stream `io` using `SWGFormat`, and return 1 (number of graphs written).
+"""
 Graphs.savegraph(io::IO, g::AbstractGraph, ::SWGFormat) = saveswg(io, g, "graph")
+
+"""
+    Graphs.savegraph(io, d, SWGFormat())
+
+Write a dictionary `d` of `name => graph` pairs to the IO stream `io` using `SWGFormat`, and return the number of graphs written.
+"""
 Graphs.savegraph(io::IO, d::Dict, ::SWGFormat) = saveswg_mult(io, d)
 
+## Graphs functions with file names
+
+# TODO: check what they do and whether compress is still required
+
+"""
+    Graphs.savegraph(fn, g, gname)
+
+!!! warning "Warning"
+    This function needs to be checked
+"""
 function Graphs.savegraph(
     fn::AbstractString,
     g::AbstractSimpleWeightedGraph,
@@ -178,6 +235,12 @@ function Graphs.savegraph(
     return savegraph(fn, g, gname, SWGFormat(); compress=compress)
 end
 
+"""
+    Graphs.savegraph(fn, d)
+
+!!! warning "Warning"
+    This function needs to be checked
+"""
 function Graphs.savegraph(
     fn::AbstractString, d::Dict{T,U}; compress=true
 ) where {T<:AbstractString,U<:AbstractSimpleWeightedGraph}

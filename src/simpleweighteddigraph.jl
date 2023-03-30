@@ -1,16 +1,23 @@
 """
     SimpleWeightedDiGraph{T,U}
 
-A type representing a directed graph with vertices of type `T` and weights of type `U`.
-
-Note that adding or removing vertices or edges is not particularly performant;
-see MetaGraphsNext.jl for possible alternatives.
-
-The primary constructor takes a sparse adjacency matrix as input, of which
-the transpose is stored. To provide the transpose directly, the keyword argument `permute` can be set to `true`.
+A type representing a directed weighted graph with vertices of type `T` and edge weights of type `U`.
 
 # Fields
-- `weights::SparseMatrixCSC{U,T}`: weighted adjacency matrix, indexed by `(dst, src)` unless `permute=true`
+- `weights::SparseMatrixCSC{U,T}`: weighted adjacency matrix, indexed by `(dst, src)`
+
+!!! tip "Performance"
+    Iteratively adding/removing vertices or edges is not very efficient for this type of graph: better construct the graph in one shot if possible.
+
+# Basic constructors
+```
+SimpleWeightedDiGraph()  # empty
+SimpleWeightedDiGraph(n)  # n vertices, no edges
+SimpleWeightedDiGraph(graph)  # from graph
+SimpleWeightedDiGraph(adjmx; permute)  # from adjacency matrix, possibly transposed
+SimpleWeightedDiGraph(sources, destinations, weights)  # from list of edges
+```
+Use `methods(SimpleWeightedDiGraph)` for the full list of constructors.
 """
 mutable struct SimpleWeightedDiGraph{T<:Integer,U<:Real} <: AbstractSimpleWeightedGraph{T,U}
     weights::SparseMatrixCSC{U,T}
@@ -23,6 +30,11 @@ mutable struct SimpleWeightedDiGraph{T<:Integer,U<:Real} <: AbstractSimpleWeight
     end
 end
 
+"""
+    WDiGraph
+
+Alias for `SimpleWeightedDiGraph`.
+"""
 const WDiGraph = SimpleWeightedDiGraph
 
 function SimpleWeightedDiGraph{T}(
@@ -94,11 +106,6 @@ function SimpleWeightedDiGraph(
     return SimpleWeightedDiGraph{T}(adjacency_matrix(g, U))
 end
 
-"""
-    DiGraph(g::AbstractGraph, x::Real)
-
-Construct a weighted digraph from other graph `g` with initial weight `x`.
-"""
 function SimpleWeightedDiGraph(g::Graphs.AbstractGraph{T}, x::U) where {U<:Real,T}
     m = adjacency_matrix(g, U)'
     return SimpleWeightedDiGraph{T,U}(x .* m; permute=false)
@@ -122,13 +129,34 @@ function Graphs.edges(g::SimpleWeightedDiGraph)
     return (SimpleWeightedEdge(x[2], x[1], x[3]) for x in zip(findnz(g.weights)...))
 end
 
+"""
+    Graphs.weights(g::SimpleWeightedDiGraph)
+
+Return the weighted adjacency matrix, stored as an `Adjoint`.
+"""
 Graphs.weights(g::SimpleWeightedDiGraph) = g.weights'
 
+"""
+    Graphs.outneighbors(g::SimpleWeightedDiGraph, v)
+
+Return the vector of outneighbors of vertex `v`.
+
+!!! tip "Performance"
+    This function is more efficient than `inneighbors` for directed weighted graphs.
+"""
 function Graphs.outneighbors(g::SimpleWeightedDiGraph, v::Integer)
     mat = g.weights
     return view(mat.rowval, mat.colptr[v]:(mat.colptr[v + 1] - 1))
 end
 
+"""
+    Graphs.inneighbors(g::SimpleWeightedDiGraph, v)
+
+Return the vector of inneighbors of vertex `v`.
+
+!!! tip "Performance"
+    This function is less efficient than `inneighbors` for directed weighted graphs (it allocates a new vector).
+"""
 Graphs.inneighbors(g::SimpleWeightedDiGraph, v::Integer) = g.weights[v, :].nzind
 
 # add_edge! will overwrite weights.
@@ -150,6 +178,11 @@ function Graphs.add_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
+"""
+    Graphs.rem_edge!(g, e)
+
+Remove the edge `e` from the graph.
+"""
 Graphs.rem_edge!(g::SimpleWeightedDiGraph, e::AbstractEdge) = rem_edge!(g, src(e), dst(e))
 
 function Graphs.rem_edge!(g::SimpleWeightedDiGraph{T}, u::Integer, v::Integer) where {T}
@@ -168,13 +201,10 @@ end
 """
     rem_vertex!(g::SimpleWeightedDiGraph, v)
 
-Remove the vertex `v` from graph `g`. Return false if removal fails
-(e.g., if vertex is not in the graph); true otherwise.
+Remove the vertex `v` from graph `g`. Return false if removal fails (e.g., if vertex is not in the graph) and true otherwise.
 
-This operation has to be performed carefully if one keeps external
-data structures indexed by edges or vertices in the graph, since
-internally the removal results in all vertices with indices greater than `v`
-being shifted down one.
+!!! tip "Correctness"
+    This operation has to be performed carefully if one keeps external data structures indexed by edges or vertices in the graph, since internally the removal results in all vertices with indices greater than `v` being shifted down one.
 """
 function Graphs.rem_vertex!(g::SimpleWeightedDiGraph, v::Integer)
     v in vertices(g) || return false

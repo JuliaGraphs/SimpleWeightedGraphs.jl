@@ -1,3 +1,8 @@
+"""
+    SimpleWeightedGraphs
+
+A package for graphs with edge weights, stored as sparse adjacency matrices.
+"""
 module SimpleWeightedGraphs
 
 using LinearAlgebra

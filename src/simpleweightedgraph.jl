@@ -2,10 +2,23 @@
 """
     SimpleWeightedGraph{T, U}
 
-A type representing an undirected graph with weights of type `U`.
+A type representing an undirected weighted graph with vertices of type `T` and edge weights of type `U`.
 
-Note that adding or removing vertices or edges is not particularly performant;
-see MetaGraphs.jl for possible alternatives.
+# Fields
+- `weights::SparseMatrixCSC{U,T}`: weighted adjacency matrix, indexed by `(dst, src)`
+
+!!! tip "Performance"
+    Iteratively adding/removing vertices or edges is not very efficient for this type of graph: better construct the graph in one shot if possible.
+
+# Basic constructors
+```
+SimpleWeightedGraph()  # empty
+SimpleWeightedGraph(n)  # n vertices, no edges
+SimpleWeightedGraph(graph)  # from graph
+SimpleWeightedGraph(adjmx)  # from adjacency matrix
+SimpleWeightedGraph(sources, destinations, weights)  # from list of edges
+```
+Use `methods(SimpleWeightedGraph)` for the full list of constructors.
 """
 mutable struct SimpleWeightedGraph{T<:Integer,U<:Real} <: AbstractSimpleWeightedGraph{T,U}
     weights::SparseMatrixCSC{U,T}
@@ -19,6 +32,11 @@ mutable struct SimpleWeightedGraph{T<:Integer,U<:Real} <: AbstractSimpleWeighted
     end
 end
 
+"""
+    WGraph
+
+Alias for `SimpleWeightedGraph`.
+"""
 const WGraph = SimpleWeightedGraph
 
 Graphs.ne(g::SimpleWeightedGraph) = (nnz(g.weights) + nselfloop(g)) ÷ 2
@@ -139,6 +157,11 @@ function Graphs.edges(g::SimpleWeightedGraph)
     return (SimpleWeightedEdge(x[1], x[2], x[3]) for x in zip(findnz(triu(g.weights))...))
 end
 
+"""
+    Graphs.weights(g::SimpleWeightedGraph)
+
+Return the weighted adjacency matrix.
+"""
 Graphs.weights(g::SimpleWeightedGraph) = g.weights
 
 function Graphs.outneighbors(g::SimpleWeightedGraph, v::Integer)
@@ -168,6 +191,11 @@ function Graphs.add_edge!(g::SimpleWeightedGraph, e::SimpleWeightedGraphEdge)
     return true
 end
 
+"""
+    Graphs.rem_edge!(g, e)
+
+Remove the edge `e` from the graph.
+"""
 Graphs.rem_edge!(g::SimpleWeightedGraph, e::AbstractEdge) = rem_edge!(g, src(e), dst(e))
 
 function Graphs.rem_edge!(
@@ -193,13 +221,10 @@ end
 """
     rem_vertex!(g::SimpleWeightedGraph, v)
 
-Remove the vertex `v` from graph `g`. Return false if removal fails
-(e.g., if vertex is not in the graph); true otherwise.
+Remove the vertex `v` from graph `g`. Return false if removal fails (e.g., if vertex is not in the graph) and true otherwise.
 
-This operation has to be performed carefully if one keeps external
-data structures indexed by edges or vertices in the graph, since
-internally the removal results in all vertices with indices greater than `v`
-being shifted down one.
+!!! tip "Correctness"
+    This operation has to be performed carefully if one keeps external data structures indexed by edges or vertices in the graph, since internally the removal results in all vertices with indices greater than `v` being shifted down one.
 """
 function Graphs.rem_vertex!(g::SimpleWeightedGraph, v::Integer)
     v in vertices(g) || return false
@@ -213,10 +238,20 @@ Base.:(==)(g::SimpleWeightedGraph, h::SimpleWeightedGraph) = g.weights == h.weig
 
 Graphs.is_directed(::Type{<:SimpleWeightedGraph}) = false
 
+"""
+    g[e, :weight]
+
+Return the weight of edge `e`.
+"""
 function Base.getindex(g::SimpleWeightedGraph, e::AbstractEdge, ::Val{:weight})
     return g.weights[src(e), dst(e)]
 end
 
+"""
+    g[i, j, :weight]
+
+Return the weight of edge `(i, j)`.
+"""
 function Base.getindex(g::SimpleWeightedGraph, i::Integer, j::Integer, ::Val{:weight})
     return g.weights[i, j]
 end
