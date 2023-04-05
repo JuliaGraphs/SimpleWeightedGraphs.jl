@@ -1,7 +1,10 @@
-using SimpleWeightedGraphs
+using Graphs
 using Documenter
+using SimpleWeightedGraphs
 
-DocMeta.setdocmeta!(SimpleWeightedGraphs, :DocTestSetup, :(using SimpleWeightedGraphs); recursive=true)
+DocMeta.setdocmeta!(
+    SimpleWeightedGraphs, :DocTestSetup, :(using SimpleWeightedGraphs); recursive=true
+)
 
 makedocs(;
     modules=[SimpleWeightedGraphs],
@@ -14,15 +17,9 @@ makedocs(;
         edit_link="master",
         assets=String[],
     ),
-    pages=[
-        "Home" => "index.md",
-        "API reference" => "api.md",
-    ],
+    pages=["Home" => "index.md", "Tutorial" => "tutorial.md", "API reference" => "api.md"],
     linkcheck=true,
     strict=true,
 )
 
-deploydocs(;
-    repo="github.com/JuliaGraphs/SimpleWeightedGraphs.jl",
-    devbranch="master",
-)
+deploydocs(; repo="github.com/JuliaGraphs/SimpleWeightedGraphs.jl", devbranch="master")

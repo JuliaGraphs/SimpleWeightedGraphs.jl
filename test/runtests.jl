@@ -38,7 +38,7 @@ tests = [
         Aqua.test_all(SimpleWeightedGraphs; ambiguities=false)
     end
     @testset verbose = false "Code formatting (JuliaFormatter.jl)" begin
-        @test_broken format(SimpleWeightedGraphs; verbose=false, overwrite=false)
+        @test format(SimpleWeightedGraphs; verbose=false, overwrite=false)
     end
     @testset verbose = false "Doctests (Documenter.jl)" begin
         doctest(SimpleWeightedGraphs)
