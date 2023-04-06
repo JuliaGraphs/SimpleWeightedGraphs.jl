@@ -76,7 +76,7 @@
         @test adjacency_matrix(g; dir=:out) == adjacency_matrix(g; dir=:in)'
         @test !issymmetric(laplacian_matrix(g; dir=:out))
         @test laplacian_matrix(g, Float64; dir=:out) ≈ g5_l
-        @test @inferred(pagerank(g))[3] ≈ 0.2266 atol = 0.001
+        @test @inferred(pagerank(g)) ≈ [0.119, 0.186, 0.311, 0.383] atol = 0.001  # checked with networkx
         @test length(@inferred(pagerank(g))) == nv(g)
         @test_throws ErrorException pagerank(g, 2)
         @test_throws ErrorException pagerank(g, 0.85, 2)
@@ -84,5 +84,12 @@
         gc = SimpleWeightedDiGraph(path_digraph(2), 2)
         @test g[2:3] == SimpleWeightedDiGraph{eltype(g5),weighttype(g5)}(gc)
         @test weights(g[2:3])[1, 2] == 2
+    end
+
+    let
+        A = [0 1 1; 1 0 0; 0 1 0]
+        g = SimpleDiGraph(A)
+        gw = SimpleWeightedDiGraph(A)
+        @test pagerank(g) ≈ pagerank(gw)
     end
 end

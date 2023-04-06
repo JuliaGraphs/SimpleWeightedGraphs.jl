@@ -55,12 +55,10 @@ Apply the page rank algorithm on a weighted graph.
 """
 function Graphs.pagerank(g::SimpleWeightedDiGraph, α=0.85, n::Integer=100, ϵ=1.0e-6)
     A = weights(g)
-    S = vec(sum(A; dims=1))
-    S = 1 ./ S
+    S = 1 ./ vec(sum(A; dims=2))  # inverse of outdegree
     S[findall(S .== Inf)] .= 0.0
-    M = A'  # need a separate line due to bug #17456 in julia
     # scaling the adjmat to stochastic adjacency matrix
-    M = (Diagonal(S) * M)'
+    M = (Diagonal(S) * A)'
     N = Int(nv(g))
     # solution vector
     x = fill(1.0 / N, N)
