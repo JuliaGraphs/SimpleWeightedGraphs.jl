@@ -47,7 +47,7 @@
         @test degree_matrix(g, Float64; dir=:out) == degree_matrix(g, Float64; dir=:in)
         @test adjacency_matrix(g)[2, 4] == 0
         @test adjacency_matrix(g; dir=:out) == adjacency_matrix(g; dir=:in)'
-        @test issymmetric(laplacian_matrix(g))
+        @test issymmetric(laplacian_matrix(g; dir=:out))
         @test laplacian_matrix(g, Float64; dir=:out) ≈ g3_l
         @test g[1:3] == SimpleWeightedGraph{eltype(g),weighttype(g)}(path_graph(3))
         gx = copy(g)
