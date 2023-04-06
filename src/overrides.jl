@@ -40,10 +40,10 @@ end
 """
     Graphs.laplacian_matrix(g, T; dir)
 
-Subtract the adjacency matrix to the degree matrix, both filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]` (default is `:both`).
+Subtract the adjacency matrix to the degree matrix, both filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]` (unlike in Graphs.jl, default is `:out`).
 """
 function Graphs.laplacian_matrix(
-    g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:both
+    g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
 )
     return degree_matrix(g, T; dir=dir) - adjacency_matrix(g, T; dir=dir)
 end

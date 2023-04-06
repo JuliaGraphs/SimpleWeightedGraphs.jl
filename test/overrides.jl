@@ -48,7 +48,7 @@
         @test adjacency_matrix(g)[2, 4] == 0
         @test adjacency_matrix(g; dir=:out) == adjacency_matrix(g; dir=:in)'
         @test issymmetric(laplacian_matrix(g))
-        @test laplacian_matrix(g, Float64) ≈ g3_l
+        @test laplacian_matrix(g, Float64; dir=:out) ≈ g3_l
         @test g[1:3] == SimpleWeightedGraph{eltype(g),weighttype(g)}(path_graph(3))
         gx = copy(g)
         add_edge!(gx, 2, 3, 99)
@@ -74,8 +74,8 @@
         @test_throws DomainError degree_matrix(g, dir=:other)
         @test @inferred(adjacency_matrix(g, Int64)) == adjacency_matrix(g, Int64; dir=:out)
         @test adjacency_matrix(g; dir=:out) == adjacency_matrix(g; dir=:in)'
-        @test !issymmetric(laplacian_matrix(g))
-        @test laplacian_matrix(g, Float64) ≈ g5_l
+        @test !issymmetric(laplacian_matrix(g; dir=:out))
+        @test laplacian_matrix(g, Float64; dir=:out) ≈ g5_l
         @test @inferred(pagerank(g))[3] ≈ 0.2266 atol = 0.001
         @test length(@inferred(pagerank(g))) == nv(g)
         @test_throws ErrorException pagerank(g, 2)
