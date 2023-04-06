@@ -1,7 +1,7 @@
 """
     degree_matrix(g, T; dir)
 
-Construct the weighted diagonal degree matrix, filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]`.
+Construct the weighted diagonal degree matrix, filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]` (default is `:out`).
 """
 function degree_matrix(
     g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
@@ -25,7 +25,7 @@ end
 """
     Graphs.adjacency_matrix(g, T; dir)
 
-Construct the weighted adjacency matrix, filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]`.
+Construct the weighted adjacency matrix, filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]` (default is `:out`).
 """
 function Graphs.adjacency_matrix(
     g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
@@ -40,7 +40,7 @@ end
 """
     Graphs.laplacian_matrix(g, T; dir)
 
-Subtract the adjacency matrix to the degree matrix, both filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]`.
+Subtract the adjacency matrix to the degree matrix, both filled with element type `T` and considering edge direction `dir ∈ [:in, :out, :both]` (unlike in Graphs.jl, default is `:out`).
 """
 function Graphs.laplacian_matrix(
     g::AbstractSimpleWeightedGraph, T::DataType=weighttype(g); dir::Symbol=:out
