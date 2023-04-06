@@ -292,10 +292,13 @@ using SimpleWeightedGraphs
             add_edge!(g, 1, 2, 5.0)
 
             @test g[1, 2, Val{:weight}()] ≈ 5
+            @test get_weight(g, 1, 2) ≈ 5
             if is_directed(G)
                 @test g[2, 1, Val{:weight}()] ≈ 0
+                @test get_weight(g, 2, 1) ≈ 0
             else
                 @test g[2, 1, Val{:weight}()] ≈ 5
+                @test get_weight(g, 2, 1) ≈ 5
             end
             m = adjacency_matrix(g)
             @test g[2, 1, Val{:weight}()] ≈ g.weights[1, 2]

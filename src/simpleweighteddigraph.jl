@@ -221,7 +221,7 @@ Base.:(==)(g::SimpleWeightedDiGraph, h::SimpleWeightedDiGraph) = g.weights == h.
 Graphs.is_directed(::Type{<:SimpleWeightedDiGraph}) = true
 
 """
-    g[e, :weight]
+    g[e, Val(:weight)]
 
 Return the weight of edge `e`.
 """
@@ -230,7 +230,7 @@ function Base.getindex(g::SimpleWeightedDiGraph, e::AbstractEdge, ::Val{:weight}
 end
 
 """
-    g[i, j, :weight]
+    g[i, j, Val(:weight)]
 
 Return the weight of edge `(i, j)`.
 """
