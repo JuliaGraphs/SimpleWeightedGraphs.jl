@@ -31,7 +31,7 @@ weighttype(::AbstractSimpleWeightedGraph{T,U}) where {T} where {U} = U
 
 Retrieve the weight of edge `(u, v)`.
 """
-get_weight(g::AbstractSimpleWeightedGraph, u::Integer, v::Integer) = weights(g)[v, u]
+get_weight(g::AbstractSimpleWeightedGraph, u::Integer, v::Integer) = weights(g)[u, v]
 
 ## Vertices
 
