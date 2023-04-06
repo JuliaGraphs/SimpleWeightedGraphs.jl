@@ -19,6 +19,7 @@ SimpleWeightedGraph(adjmx)  # from adjacency matrix
 SimpleWeightedGraph(sources, destinations, weights)  # from list of edges
 ```
 Use `methods(SimpleWeightedGraph)` for the full list of constructors.
+When building a new graph from a list of edges, you must avoid repeating `(src, dst)` pairs in the list: this can lead to undefined behavior.
 """
 mutable struct SimpleWeightedGraph{T<:Integer,U<:Real} <: AbstractSimpleWeightedGraph{T,U}
     weights::SparseMatrixCSC{U,T}
