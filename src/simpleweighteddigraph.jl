@@ -18,7 +18,7 @@ SimpleWeightedDiGraph(adjmx; permute)  # from adjacency matrix, possibly transpo
 SimpleWeightedDiGraph(sources, destinations, weights)  # from list of edges
 ```
 Use `methods(SimpleWeightedDiGraph)` for the full list of constructors.
-When building a new graph from a list of edges, you must avoid repeating `(src, dst)` pairs in the list: this can lead to undefined behavior.
+When building a new graph from a list of edges, be aware that repeating `(src, dst)` pairs may lead to undefined behavior (e.g. due to floating point errors during weight addition).
 """
 mutable struct SimpleWeightedDiGraph{T<:Integer,U<:Real} <: AbstractSimpleWeightedGraph{T,U}
     weights::SparseMatrixCSC{U,T}
