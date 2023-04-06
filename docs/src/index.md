@@ -20,6 +20,8 @@ Because `SimpleWeighted(Di)Graph`s are stored in sparse matrices, they have two 
 
 - Zero-weight edges are discarded by `add_edge!`. A possible workaround is to [set a very small weight instead](https://stackoverflow.com/questions/48977068/how-to-add-free-edge-to-graph-in-lightgraphs-julia/48994712#48994712).
 
+In additions, self-loops are not supported.
+
 ## Alternatives
 
 If your graphs have more than just edge weights to store, take a look at [MetaGraphsNext.jl](https://github.com/JuliaGraphs/MetaGraphsNext.jl) or [MetaGraphs.jl](https://github.com/JuliaGraphs/MetaGraphs.jl) for more complex formats.
