@@ -20,7 +20,6 @@ using SparseArrays
     @test @inferred(ne(SimpleWeightedDiGraph(adjmx2))) == 6
     @test @inferred(is_directed(SimpleWeightedDiGraph))
 
-
     for gbig in [SimpleWeightedGraph(0xff), SimpleWeightedDiGraph(0xff)]
         @test @inferred(!add_vertex!(gbig))    # overflow
         @test @inferred(!add_vertices!(gbig, 10))
@@ -47,27 +46,32 @@ using SparseArrays
     gx = SimpleWeightedGraph(path_graph(4))
 
     gc = copy(gx)
-    @test_logs (:warn, "Note: adding edges with a zero weight to this graph type has no effect.") add_edge!(gc, 4, 1, 0.0)
+    @test_logs (
+        :warn, "Note: adding edges with a zero weight to this graph type has no effect."
+    ) add_edge!(gc, 4, 1, 0.0)
     @test !(add_edge!(gc, 4, 1, 0.0))
 
     for g in testgraphs(gx)
         @test @inferred(vertices(g)) == 1:4
-        @test SimpleWeightedEdge(2,3) in edges(g)
+        @test SimpleWeightedEdge(2, 3) in edges(g)
         @test @inferred(nv(g)) == 4
-        @test @inferred(outneighbors(g,2)) == inneighbors(g,2) == neighbors(g,2)
+        @test @inferred(outneighbors(g, 2)) == inneighbors(g, 2) == neighbors(g, 2)
         @test @inferred(has_edge(g, 2, 3))
         @test @inferred(has_edge(g, 3, 2))
 
         gc = copy(g)
-        @test @inferred(add_edge!(gc, 4=>1)) && gc == SimpleWeightedGraph(cycle_graph(4))
-        @test @inferred(has_edge(gc, 4=>1)) && has_edge(gc, 0x04=>0x01)
+        @test @inferred(add_edge!(gc, 4 => 1)) && gc == SimpleWeightedGraph(cycle_graph(4))
+        @test @inferred(has_edge(gc, 4 => 1)) && has_edge(gc, 0x04 => 0x01)
         gc = copy(g)
-        @test @inferred(add_edge!(gc, (4,1))) && gc == SimpleWeightedGraph(cycle_graph(4))
-        @test @inferred(has_edge(gc, (4,1))) && has_edge(gc, (0x04, 0x01))
+        @test @inferred(add_edge!(gc, (4, 1))) && gc == SimpleWeightedGraph(cycle_graph(4))
+        @test @inferred(has_edge(gc, (4, 1))) && has_edge(gc, (0x04, 0x01))
         gc = copy(g)
         @test add_edge!(gc, 4, 1) && gc == SimpleWeightedGraph(cycle_graph(4))
 
-        @test @inferred(inneighbors(g, 2)) == @inferred(outneighbors(g, 2)) == @inferred(neighbors(g,2)) == [1,3]
+        @test @inferred(inneighbors(g, 2)) ==
+            @inferred(outneighbors(g, 2)) ==
+            @inferred(neighbors(g, 2)) ==
+            [1, 3]
         @test @inferred(add_vertex!(gc))   # out of order, but we want it for issubset
         @test @inferred(g ⊆ gc)
         @test @inferred(has_vertex(gc, 5))
@@ -75,37 +79,40 @@ using SparseArrays
         @test @inferred(ne(g)) == 3
 
         @test @inferred(rem_edge!(gc, 1, 2)) && @inferred(!has_edge(gc, 1, 2))
-        @test @inferred(inneighbors(gc, 2)) == @inferred(outneighbors(gc, 2)) == @inferred(neighbors(gc,2)) == [3]
+        @test @inferred(inneighbors(gc, 2)) ==
+            @inferred(outneighbors(gc, 2)) ==
+            @inferred(neighbors(gc, 2)) ==
+            [3]
         ga = @inferred(copy(g))
         @test @inferred(rem_vertex!(ga, 2)) && ne(ga) == 1
         @test @inferred(!rem_vertex!(ga, 10))
 
-        @test @inferred(zero(g)) == SimpleWeightedGraph{eltype(g), weighttype(g)}()
+        @test @inferred(zero(g)) == SimpleWeightedGraph{eltype(g),weighttype(g)}()
 
         # concrete tests below
 
-        @test @inferred(eltype(g)) == eltype(outneighbors(g,1)) == eltype(nv(g))
+        @test @inferred(eltype(g)) == eltype(outneighbors(g, 1)) == eltype(nv(g))
         T = @inferred(eltype(g))
         U = @inferred(weighttype(g))
-        @test @inferred(nv(SimpleWeightedGraph{T, U}(6))) == 6
+        @test @inferred(nv(SimpleWeightedGraph{T,U}(6))) == 6
 
         # @test @inferred(eltype(SimpleWeightedGraph(T))) == T
-        @test @inferred(eltype(SimpleWeightedGraph{T, U}(adjmx1))) == T
+        @test @inferred(eltype(SimpleWeightedGraph{T,U}(adjmx1))) == T
 
         ga = SimpleWeightedGraph(10)
-        @test @inferred(eltype(SimpleWeightedGraph{T, U}(ga))) == T
+        @test @inferred(eltype(SimpleWeightedGraph{T,U}(ga))) == T
 
         for gd in testdigraphs(gdx)
             T2 = eltype(gd)
             @test @inferred(eltype(SimpleWeightedGraph(gd))) == T2
         end
 
-        @test @inferred(edgetype(g)) == SimpleWeightedGraphEdge{T, U}
+        @test @inferred(edgetype(g)) == SimpleWeightedGraphEdge{T,U}
         @test @inferred(copy(g)) == g
         @test @inferred(!is_directed(g))
 
         # test that edgetype(g) is a valid constructor when called with just the source and destination vertex
-        @test edgetype(g)(1,2) == SimpleWeightedGraphEdge{T, U}(1,2,1.0)
+        @test edgetype(g)(1, 2) == SimpleWeightedGraphEdge{T,U}(1, 2, 1.0)
 
         e = first(edges(g))
         @test @inferred(has_edge(g, e))
@@ -114,13 +121,15 @@ using SparseArrays
     gdx = SimpleWeightedDiGraph(path_digraph(4))
 
     gc = copy(gdx)
-    @test_logs (:warn, "Note: adding edges with a zero weight to this graph type has no effect.") add_edge!(gc, 4, 1, 0.0)
+    @test_logs (
+        :warn, "Note: adding edges with a zero weight to this graph type has no effect."
+    ) add_edge!(gc, 4, 1, 0.0)
     @test !(add_edge!(gc, 4, 1, 0.0))
 
     for g in testdigraphs(gdx)
         @test @inferred(vertices(g)) == 1:4
-        @test SimpleWeightedEdge(2,3) in edges(g)
-        @test !(SimpleWeightedEdge(3,2) in edges(g))
+        @test SimpleWeightedEdge(2, 3) in edges(g)
+        @test !(SimpleWeightedEdge(3, 2) in edges(g))
         @test @inferred(nv(g)) == 4
         @test outneighbors(g, 2) == [3]
         @test inneighbors(g, 2) == [1]
@@ -129,16 +138,19 @@ using SparseArrays
         @test @inferred(!has_edge(g, 3, 2))
 
         gc = copy(g)
-        @test @inferred(add_edge!(gc, 4=>1)) && gc == SimpleWeightedDiGraph(cycle_digraph(4))
-        @test @inferred(has_edge(gc, 4=>1)) && has_edge(gc, 0x04=>0x01)
+        @test @inferred(add_edge!(gc, 4 => 1)) &&
+            gc == SimpleWeightedDiGraph(cycle_digraph(4))
+        @test @inferred(has_edge(gc, 4 => 1)) && has_edge(gc, 0x04 => 0x01)
         gc = copy(g)
-        @test @inferred(add_edge!(gc, (4,1))) && gc == SimpleWeightedDiGraph(cycle_digraph(4))
-        @test @inferred(has_edge(gc, (4,1))) && has_edge(gc, (0x04, 0x01))
+        @test @inferred(add_edge!(gc, (4, 1))) &&
+            gc == SimpleWeightedDiGraph(cycle_digraph(4))
+        @test @inferred(has_edge(gc, (4, 1))) && has_edge(gc, (0x04, 0x01))
         gc = @inferred(copy(g))
-        @test @inferred(add_edge!(gc, 4, 1)) && gc == SimpleWeightedDiGraph(cycle_digraph(4))
+        @test @inferred(add_edge!(gc, 4, 1)) &&
+            gc == SimpleWeightedDiGraph(cycle_digraph(4))
 
         @test @inferred(inneighbors(g, 2)) == [1]
-        @test @inferred(outneighbors(g, 2)) == @inferred(neighbors(g,2)) == [3]
+        @test @inferred(outneighbors(g, 2)) == @inferred(neighbors(g, 2)) == [3]
         @test @inferred(add_vertex!(gc))   # out of order, but we want it for issubset
         @test @inferred(g ⊆ gc)
         @test @inferred(has_vertex(gc, 5))
@@ -152,32 +164,32 @@ using SparseArrays
         @test @inferred(rem_vertex!(ga, 2)) && ne(ga) == 1
         @test @inferred(!rem_vertex!(ga, 10))
 
-        @test @inferred(zero(g)) == SimpleWeightedDiGraph{eltype(g), weighttype(g)}()
+        @test @inferred(zero(g)) == SimpleWeightedDiGraph{eltype(g),weighttype(g)}()
 
         # concrete tests below
 
-        @test @inferred(eltype(g)) == eltype(@inferred(outneighbors(g,1))) == eltype(nv(g))
+        @test @inferred(eltype(g)) == eltype(@inferred(outneighbors(g, 1))) == eltype(nv(g))
         T = @inferred(eltype(g))
         U = @inferred(weighttype(g))
-        @test @inferred(nv(SimpleWeightedDiGraph{T, U}(6))) == 6
+        @test @inferred(nv(SimpleWeightedDiGraph{T,U}(6))) == 6
 
         # @test @inferred(eltype(SimpleWeightedDiGraph(T))) == T
-        @test @inferred(eltype(SimpleWeightedDiGraph{T, U}(adjmx2))) == T
+        @test @inferred(eltype(SimpleWeightedDiGraph{T,U}(adjmx2))) == T
 
         ga = SimpleWeightedDiGraph(10)
-        @test @inferred(eltype(SimpleWeightedDiGraph{T, U}(ga))) == T
+        @test @inferred(eltype(SimpleWeightedDiGraph{T,U}(ga))) == T
 
         for gu in testgraphs(gx)
             T2 = @inferred(eltype(gu))
             @test @inferred(eltype(SimpleWeightedDiGraph(gu))) == T2
         end
 
-        @test @inferred(edgetype(g)) == SimpleWeightedDiGraphEdge{T, U}
+        @test @inferred(edgetype(g)) == SimpleWeightedDiGraphEdge{T,U}
         @test @inferred(copy(g)) == g
         @test @inferred(is_directed(g))
 
         # test that edgetype(g) is a valid constructor when called with just the source and destination vertex
-        @test edgetype(g)(1,2) == SimpleWeightedDiGraphEdge{T, U}(1,2,1.0)
+        @test edgetype(g)(1, 2) == SimpleWeightedDiGraphEdge{T,U}(1, 2, 1.0)
 
         e = first(@inferred(edges(g)))
         @test @inferred(has_edge(g, e))
@@ -195,67 +207,74 @@ using SparseArrays
     g = SimpleWeightedDiGraph(path_graph(5), 4.0)
     @test sum(weights(g)) == ne(g) * 4.0
 
-    gx = Graph(4,3)
+    gx = Graph(4, 3)
     for g in testsimplegraphs(gx)
         @test eltype(SimpleWeightedGraph(g)) == eltype(g)
     end
 
-    gx = DiGraph(4,3)
+    gx = DiGraph(4, 3)
     for g in testsimpledigraphs(gx)
         @test eltype(SimpleWeightedGraph(g)) == eltype(g)
     end
 
     s = SimpleWeightedGraph(path_graph(5), 2)
-    s2 = SimpleWeightedGraph([1,2,3,4], [2,3,4,5], [2,2,2,2])
+    s2 = SimpleWeightedGraph([1, 2, 3, 4], [2, 3, 4, 5], [2, 2, 2, 2])
     @test s == s2
 
     s = SimpleWeightedDiGraph(path_digraph(5), 2)
-    s2 = SimpleWeightedDiGraph([1,2,3,4], [2,3,4,5], [2,2,2,2])
+    s2 = SimpleWeightedDiGraph([1, 2, 3, 4], [2, 3, 4, 5], [2, 2, 2, 2])
     @test s == s2
 
-    s = SimpleWeightedGraph([10,20,30,40], [20,30,40,50], [2,2,2,2])
+    s = SimpleWeightedGraph([10, 20, 30, 40], [20, 30, 40, 50], [2, 2, 2, 2])
     @test size(s.weights) == (50, 50)
 
-    s = SimpleWeightedDiGraph([10,20,30,40], [20,30,40,50], [2,2,2,2])
+    s = SimpleWeightedDiGraph([10, 20, 30, 40], [20, 30, 40, 50], [2, 2, 2, 2])
     @test size(s.weights) == (50, 50)
 
-    s = SimpleWeightedGraph([1,2,1], [2,1,2], [1,1,1]; combine = +)
-    @test s.weights[2,1] == s.weights[1,2] == 3
+    s = SimpleWeightedGraph([1, 2, 1], [2, 1, 2], [1, 1, 1]; combine=+)
+    @test s.weights[2, 1] == s.weights[1, 2] == 3
 
-    s = SimpleWeightedDiGraph([1,2,1], [2,1,2], [1,1,1]; combine = +)
-    @test s.weights[1,2] == 1
-    @test s.weights[2,1] == 2
+    s = SimpleWeightedDiGraph([1, 2, 1], [2, 1, 2], [1, 1, 1]; combine=+)
+    @test s.weights[1, 2] == 1
+    @test s.weights[2, 1] == 2
 
-    s = SimpleWeightedDiGraph([1,2,1], [2,1,2], [1,1,2]; combine = (x,y) -> y)
-    @test s.weights[1,2] == 1
-    @test s.weights[2,1] == 2
+    s = SimpleWeightedDiGraph([1, 2, 1], [2, 1, 2], [1, 1, 2]; combine=(x, y) -> y)
+    @test s.weights[1, 2] == 1
+    @test s.weights[2, 1] == 2
 
-    @test SimpleDiGraph(SimpleWeightedDiGraph(cycle_graph(4))) == SimpleDiGraph(cycle_graph(4))
+    @test SimpleDiGraph(SimpleWeightedDiGraph(cycle_graph(4))) ==
+        SimpleDiGraph(cycle_graph(4))
     @test SimpleGraph(SimpleWeightedGraph(path_graph(5))) == path_graph(5)
 
-    @test SimpleWeightedGraph(cycle_graph(4)) == SimpleWeightedGraph(SimpleWeightedGraph(cycle_graph(4)))
-    @test SimpleWeightedDiGraph(cycle_digraph(4)) == SimpleWeightedDiGraph(SimpleWeightedDiGraph(cycle_digraph(4)))
+    @test SimpleWeightedGraph(cycle_graph(4)) ==
+        SimpleWeightedGraph(SimpleWeightedGraph(cycle_graph(4)))
+    @test SimpleWeightedDiGraph(cycle_digraph(4)) ==
+        SimpleWeightedDiGraph(SimpleWeightedDiGraph(cycle_digraph(4)))
 
-    @test SimpleWeightedDiGraph(Matrix(adjacency_matrix(cycle_digraph(4)))) == SimpleWeightedDiGraph(cycle_digraph(4))
-    @test SimpleWeightedDiGraph{Int32}(Matrix(adjacency_matrix(cycle_digraph(4)))) == SimpleWeightedDiGraph{Int32, Float64}(SimpleWeightedDiGraph(cycle_digraph(4)))
+    @test SimpleWeightedDiGraph(Matrix(adjacency_matrix(cycle_digraph(4)))) ==
+        SimpleWeightedDiGraph(cycle_digraph(4))
+    @test SimpleWeightedDiGraph{Int32}(Matrix(adjacency_matrix(cycle_digraph(4)))) ==
+        SimpleWeightedDiGraph{Int32,Float64}(SimpleWeightedDiGraph(cycle_digraph(4)))
 
-    @test SimpleWeightedGraph{Int32}(Matrix(adjacency_matrix(cycle_graph(4)))) == SimpleWeightedGraph{Int32, Float64}(SimpleWeightedGraph(cycle_graph(4)))
-    @test SimpleWeightedGraph{Int32}(adjacency_matrix(cycle_graph(4))) == SimpleWeightedGraph{Int32, Float64}(SimpleWeightedGraph(cycle_graph(4)))
+    @test SimpleWeightedGraph{Int32}(Matrix(adjacency_matrix(cycle_graph(4)))) ==
+        SimpleWeightedGraph{Int32,Float64}(SimpleWeightedGraph(cycle_graph(4)))
+    @test SimpleWeightedGraph{Int32}(adjacency_matrix(cycle_graph(4))) ==
+        SimpleWeightedGraph{Int32,Float64}(SimpleWeightedGraph(cycle_graph(4)))
 
     @testset "Typed constructors $T" for T in (UInt8, Int32)
         g = SimpleWeightedGraph(T)
         @test g isa AbstractGraph{T}
-        @test g isa SimpleWeightedGraph{T, Float64}
+        @test g isa SimpleWeightedGraph{T,Float64}
         dg = SimpleWeightedDiGraph(T)
         @test dg isa AbstractGraph{T}
-        @test dg isa SimpleWeightedDiGraph{T, Float64}
+        @test dg isa SimpleWeightedDiGraph{T,Float64}
         for U in (Float16, Float32)
             g = SimpleWeightedGraph(T, U)
             @test g isa AbstractGraph{T}
-            @test g isa SimpleWeightedGraph{T, U}
+            @test g isa SimpleWeightedGraph{T,U}
             dg = SimpleWeightedDiGraph(T, U)
             @test dg isa AbstractGraph{T}
-            @test dg isa SimpleWeightedDiGraph{T, U}
+            @test dg isa SimpleWeightedDiGraph{T,U}
         end
     end
 
@@ -274,10 +293,13 @@ using SparseArrays
             add_edge!(g, 1, 2, 5.0)
 
             @test g[1, 2, Val{:weight}()] ≈ 5
+            @test get_weight(g, 1, 2) ≈ 5
             if is_directed(G)
                 @test g[2, 1, Val{:weight}()] ≈ 0
+                @test get_weight(g, 2, 1) ≈ 0
             else
                 @test g[2, 1, Val{:weight}()] ≈ 5
+                @test get_weight(g, 2, 1) ≈ 5
             end
             m = adjacency_matrix(g)
             @test g[2, 1, Val{:weight}()] ≈ g.weights[1, 2]
@@ -292,11 +314,11 @@ using SparseArrays
         @test add_edge!(dg, 1, 3, 2.5)
         @test dg[1, 3, Val{:weight}()] ≈ 2.5
         @test dg2[1, 3, Val{:weight}()] ≈ 0
-        dg3 = SimpleWeightedDiGraph{Int, Float64}(dg)
+        dg3 = SimpleWeightedDiGraph{Int,Float64}(dg)
         @test add_edge!(dg, 1, 4, 3.5)
         @test dg[1, 4, Val{:weight}()] ≈ 3.5
         @test dg3[1, 4, Val{:weight}()] ≈ 0
-        g1 = SimpleWeightedGraph{Int, Float64}(dg)
+        g1 = SimpleWeightedGraph{Int,Float64}(dg)
         g2 = SimpleWeightedGraph(dg)
         @test g1 == g2
         @test ne(g1) == 5 # 1-2 1-3 2-3 3-4 4-1
@@ -309,7 +331,7 @@ using SparseArrays
         @test add_edge!(g, 1, 3, 2.5)
         @test g[1, 3, Val{:weight}()] ≈ 2.5
         @test g2[1, 3, Val{:weight}()] ≈ 0.0
-        g3 = SimpleWeightedDiGraph{Int, Float64}(g)
+        g3 = SimpleWeightedDiGraph{Int,Float64}(g)
         @test add_edge!(g, 1, 4, 3.5)
         @test g[1, 4, Val{:weight}()] ≈ 3.5
         @test g3[1, 4, Val{:weight}()] ≈ 0
@@ -317,10 +339,10 @@ using SparseArrays
         # copy from undirected to directed
         g = SimpleWeightedGraph(cycle_graph(4), 0.5)
         dg = SimpleWeightedDiGraph(g)
-        @test g[1,3,Val{:weight}()] ≈ 0
+        @test g[1, 3, Val{:weight}()] ≈ 0
         add_edge!(g, 1, 3, 6.5)
-        @test g[1,3,Val{:weight}()] ≈ 6.5
-        @test dg[1,3,Val{:weight}()] ≈ 0
+        @test g[1, 3, Val{:weight}()] ≈ 6.5
+        @test dg[1, 3, Val{:weight}()] ≈ 0
 
         dg = SimpleWeightedDiGraph(cycle_digraph(4), 0.5)
         @test dg[2, 1, Val{:weight}()] ≈ 0
