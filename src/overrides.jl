@@ -162,12 +162,50 @@ Compute the weighted subgraph induced by a list of vertices.
 Return a tuple containing the new graph and the list of vertices.
 """
 function Graphs.induced_subgraph(
-    g::T, vlist::AbstractVector{U}
-) where {T<:AbstractSimpleWeightedGraph,U<:Integer}
-    E = eltype(g)
+    g::G, vlist::AbstractVector{U}
+) where {G<:AbstractSimpleWeightedGraph,U<:Integer}
+    T = eltype(g)
     allunique(vlist) || throw(ArgumentError("Vertices in subgraph list must be unique"))
-    new_weights = g.weights[E.(vlist), E.(vlist)]
+    new_weights = g.weights[T.(vlist), T.(vlist)]
     newg = zero(g)
     newg.weights = new_weights
-    return newg, Vector{E}(vlist)
+    return newg, Vector{T}(vlist)
+end
+
+function Graphs.induced_subgraph(
+    g::G, elist::AbstractVector{E}
+) where {G<:AbstractSimpleWeightedGraph} where {E<:AbstractEdge}
+    allunique(elist) || throw(ArgumentError("Edges in subgraph list must be unique"))
+    T, U = eltype(g), weighttype(g)
+    vertex_set = Set{T}()
+    for e in elist
+        if has_edge(g, e)
+            push!(vertex_set, src(e), dst(e))
+        else
+            @warn "Skipping the edge $(e), since it does not exist in the graph!"
+        end
+    end
+    vertex_list = collect(vertex_set)
+    sort!(vertex_list)
+    index_map = Dict(vertex_list[i] => i for i in eachindex(vertex_list))
+    n = length(vertex_list)
+    new_weights = spzeros(weighttype(g), T, n, n)
+    I, J, W = T[], T[], U[]
+    for e in elist
+        if has_edge(g, e)
+            i, j = index_map[src(e)], index_map[dst(e)]
+            w = get_weight(g, dst(e), src(e))
+            push!(I, j)  # storage is transposed!
+            push!(J, i)
+            push!(W, w)
+            if !is_directed(g)
+                push!(I, i)
+                push!(J, j)
+                push!(W, w)
+            end
+        end
+    end
+    new_weights = sparse(I, J, W)
+    newg = G(new_weights)
+    return newg, vertex_list
 end

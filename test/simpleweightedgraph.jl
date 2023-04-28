@@ -1,4 +1,5 @@
 using SimpleWeightedGraphs
+using SparseArrays
 
 @testset verbose = true "SimpleWeightedGraphs" begin
     @info("Ignore warnings relating to adding and removing vertices and edges")
@@ -350,5 +351,34 @@ using SimpleWeightedGraphs
         @test g[1, 2, Val{:weight}()] ≈ 1.1
         @test g[1, 3, Val{:weight}()] ≈ 0
         @test g[2, 3, Val{:weight}()] ≈ 0.5
+    end
+
+    # this testset was implemented for https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/issues/32
+    @testset "induced_subgraph should preserve weights for edge lists" begin
+        g = SimpleWeightedGraph([0 2; 2 0])
+        expected_graph_weights = sparse([0 2; 2 0])
+        # vertex induced subgraph
+        vertex_induced_subgraph_weights = weights(first(induced_subgraph(g, [1, 2])))
+        @test vertex_induced_subgraph_weights == expected_graph_weights
+        # edge induced subgraph
+        edge_induced_subgraph_weights = weights(first(induced_subgraph(g, [Edge(1, 2)])))
+        @test edge_induced_subgraph_weights == expected_graph_weights
+
+        # test edge induced graph with one edge removed
+        # graph isomorphic to C_5
+        g = SimpleWeightedGraph([0 2 0 0 2; 2 0 2 0 0; 0 2 0 2 0; 0 0 2 0 2; 2 0 0 2 0])
+        expected_graph_weights = sparse(
+            [0 2 0 0 0; 2 0 2 0 0; 0 2 0 2 0; 0 0 2 0 2; 0 0 0 2 0]
+        )
+        # create edge induced subgraph isomorphic to P_5. The edge (1, 5) is missing and test if weights are correct.
+        edge_induced_subgraph_weights = weights(
+            first(induced_subgraph(g, [Edge(1, 2), Edge(2, 3), Edge(3, 4), Edge(4, 5)]))
+        )
+        @test edge_induced_subgraph_weights == expected_graph_weights
+
+        # test edge induced subgraph which does not contain the whole vertex set, especially remove the first column (vertex 1)
+        edge_induced_subgraph_weights = weights(first(induced_subgraph(g, [Edge(2, 3)])))
+        expected_graph_weights = sparse([0 2; 2 0])
+        @test edge_induced_subgraph_weights == expected_graph_weights
     end
 end
