@@ -172,20 +172,22 @@ function Graphs.induced_subgraph(
     return newg, Vector{E}(vlist)
 end
 
-function induced_subgraph(g::T, elist::AbstractVector{U}) where T <: AbstractSimpleWeightedGraph where U <: AbstractEdge
+function Graphs.induced_subgraph(
+    g::T, elist::AbstractVector{U}
+) where {T<:AbstractSimpleWeightedGraph} where {U<:AbstractEdge}
     allunique(elist) || throw(ArgumentError("Edges in subgraph list must be unique"))
     E = eltype(g)
     vertex_set = Set{E}()
     @inbounds for e in elist
         if has_edge(g, e)
             push!(vertex_set, src(e), dst(e))
-        else 
+        else
             @warn "Skipping the edge $(e), since it does not exist in the graph!"
         end
     end
     vertex_list = collect(vertex_set)
     sort!(vertex_list)
-    index_map = Dict(vertex_list[i] => i for i=1:length(vertex_list))
+    index_map = Dict(vertex_list[i] => i for i in 1:length(vertex_list))
     n = length(vertex_list)
     new_weights = spzeros(weighttype(g), E, E(n), E(n))
     @inbounds for e in elist
@@ -197,7 +199,6 @@ function induced_subgraph(g::T, elist::AbstractVector{U}) where T <: AbstractSim
             end
         end
     end
-    newg = zero(g)
-    newg.weights = new_weights
+    newg = T(new_weights)
     return newg, Vector{edgetype(g)}(collect(edges(newg)))
 end
