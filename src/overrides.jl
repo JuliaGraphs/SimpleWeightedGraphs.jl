@@ -194,7 +194,7 @@ function Graphs.induced_subgraph(
     for e in elist
         if has_edge(g, e)
             i, j = index_map[src(e)], index_map[dst(e)]
-            w = get_weight(g, dst(e), src(e))
+            w = get_weight(g, e)
             push!(I, j)  # storage is transposed!
             push!(J, i)
             push!(W, w)
