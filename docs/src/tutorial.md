@@ -28,6 +28,13 @@ julia> get_weight(g, 1, 2)
 0.5
 ```
 
+Or by passing in any `e::AbstractEdge`:
+
+```jldoctest tuto
+julia> get_weight(g, Edge(1, 2))
+0.5
+```
+
 Find the shortest path from vertex 1 to vertex 3, taking weights into account:
 
 ```jldoctest tuto

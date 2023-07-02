@@ -28,10 +28,14 @@ weighttype(::AbstractSimpleWeightedGraph{T,U}) where {T} where {U} = U
 
 """
     get_weight(g, u, v)
+    get_weight(g, e)
 
-Retrieve the weight of edge `(u, v)`.
+Retrieve the weight of edge `(u, v)` or `e`.
 """
 get_weight(g::AbstractSimpleWeightedGraph, u::Integer, v::Integer) = weights(g)[u, v]
+function get_weight(g::AbstractSimpleWeightedGraph, e::AbstractEdge{<:Integer})
+    return weights(g)[src(e), dst(e)]
+end
 
 ## Vertices
 

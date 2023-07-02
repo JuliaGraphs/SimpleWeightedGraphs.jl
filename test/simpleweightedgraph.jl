@@ -204,6 +204,9 @@ using SparseArrays
     @test sum(weights(g)) == 2 * ne(g) * 3
     @test @inferred(get_weight(g, 1, 2)) == 3
 
+    @test @inferred(get_weight(g, Edge(1, 2))) == 3
+    @test @inferred(get_weight(g, SimpleWeightedEdge(1, 2, 0.5))) == 3
+
     g = SimpleWeightedDiGraph(path_graph(5), 4.0)
     @test sum(weights(g)) == ne(g) * 4.0
 
@@ -294,12 +297,18 @@ using SparseArrays
 
             @test g[1, 2, Val{:weight}()] ≈ 5
             @test get_weight(g, 1, 2) ≈ 5
+            @test get_weight(g, Edge(1, 2)) ≈ 5
+            @test get_weight(g, SimpleWeightedEdge(1, 2)) ≈ 5
             if is_directed(G)
                 @test g[2, 1, Val{:weight}()] ≈ 0
                 @test get_weight(g, 2, 1) ≈ 0
+                @test get_weight(g, Edge(2, 1)) ≈ 0
+                @test get_weight(g, SimpleWeightedEdge(2, 1)) ≈ 0
             else
                 @test g[2, 1, Val{:weight}()] ≈ 5
                 @test get_weight(g, 2, 1) ≈ 5
+                @test get_weight(g, Edge(2, 1)) ≈ 5
+                @test get_weight(g, SimpleWeightedEdge(2, 1)) ≈ 5
             end
             m = adjacency_matrix(g)
             @test g[2, 1, Val{:weight}()] ≈ g.weights[1, 2]
