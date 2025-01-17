@@ -18,44 +18,58 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.6'
+          - 'min'
           - '1'
-          - 'nightly'
+          - 'pre'
         os:
           - ubuntu-latest
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v5
         with:
           files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
   docs:
     name: Documentation
-    runs-on: ubuntu-latest
+
+on:
+  push:
+    branches:
+      - main # update to match your development branch (master, main, dev, trunk, ...)
+    tags: '*'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  docs:
     permissions:
       contents: write
+      pull-requests: read
       statuses: write
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-docdeploy@v1
+      - uses: julia-actions/cache@v2
+      - name: Install dependencies
+        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+      - name: Build and deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          julia --project=docs -e '
-            using Documenter: DocMeta, doctest
-            using SimpleWeightedGraphs
-            DocMeta.setdocmeta!(SimpleWeightedGraphs, :DocTestSetup, :(using SimpleWeightedGraphs); recursive=true)
-            doctest(SimpleWeightedGraphs)'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
+        run: julia --project=docs/ docs/make.jl
