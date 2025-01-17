@@ -40,21 +40,6 @@ jobs:
           files: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
   docs:
-    name: Documentation
-
-on:
-  push:
-    branches:
-      - main # update to match your development branch (master, main, dev, trunk, ...)
-    tags: '*'
-  pull_request:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
-
-jobs:
-  docs:
     permissions:
       contents: write
       pull-requests: read
