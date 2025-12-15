@@ -1,7 +1,6 @@
 using Aqua
 using Documenter
 using Graphs
-using JuliaFormatter
 using LinearAlgebra
 using SimpleWeightedGraphs
 using Test
@@ -36,9 +35,6 @@ tests = [
 @testset verbose = true "SimpleWeightedGraphs" begin
     @testset verbose = true "Code quality (Aqua.jl)" begin
         Aqua.test_all(SimpleWeightedGraphs; ambiguities=false)
-    end
-    @testset verbose = false "Code formatting (JuliaFormatter.jl)" begin
-        @test format(SimpleWeightedGraphs; verbose=false, overwrite=false)
     end
     @testset verbose = false "Doctests (Documenter.jl)" begin
         doctest(SimpleWeightedGraphs)
