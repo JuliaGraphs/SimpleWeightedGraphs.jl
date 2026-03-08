@@ -163,10 +163,9 @@ Graphs.inneighbors(g::SimpleWeightedDiGraph, v::Integer) = g.weights[v, :].nzind
 # add_edge! will overwrite weights.
 function Graphs.add_edge!(g::SimpleWeightedDiGraph, e::SimpleWeightedGraphEdge)
     T = eltype(g)
-    U = weighttype(g)
     s_, d_, w = Tuple(e)
 
-    if w == zero(U)
+    if iszero(w)
         @warn "Note: adding edges with a zero weight to this graph type has no effect." maxlog =
             1 _id = :swd_add_edge_zero
         return false
