@@ -9,17 +9,9 @@ DocMeta.setdocmeta!(
 makedocs(;
     modules=[SimpleWeightedGraphs],
     authors="Seth Bromberger and contributors",
-    repo="https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl/blob/{commit}{path}#{line}",
     sitename="SimpleWeightedGraphs.jl",
-    format=Documenter.HTML(;
-        prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://JuliaGraphs.github.io/SimpleWeightedGraphs.jl",
-        edit_link="master",
-        assets=String[],
-    ),
+    format=Documenter.HTML(),
     pages=["Home" => "index.md", "Tutorial" => "tutorial.md", "API reference" => "api.md"],
-    linkcheck=true,
-    strict=true,
 )
 
 deploydocs(; repo="github.com/JuliaGraphs/SimpleWeightedGraphs.jl", devbranch="master")

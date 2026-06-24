@@ -156,7 +156,7 @@ end
 Return the vector of inneighbors of vertex `v`.
 
 !!! tip "Performance"
-    This function is less efficient than `inneighbors` for directed weighted graphs (it allocates a new vector).
+    This function is less efficient than `outneighbors` for directed weighted graphs (it allocates a new vector).
 """
 Graphs.inneighbors(g::SimpleWeightedDiGraph, v::Integer) = g.weights[v, :].nzind
 
