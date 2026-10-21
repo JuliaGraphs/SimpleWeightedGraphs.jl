@@ -14,7 +14,7 @@ Graphs = "1.7"
 LinearAlgebra = "1.10"
 SimpleWeightedGraphs = "1.5.0"
 SparseArrays = "1.10"
-Test = "1.10"
+Test = "<0.0.1, 1, 1.10"
 
 [sources]
 SimpleWeightedGraphs = { path = ".." }
